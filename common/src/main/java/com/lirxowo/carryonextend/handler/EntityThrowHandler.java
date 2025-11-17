@@ -1,5 +1,6 @@
 package com.lirxowo.carryonextend.handler;
 
+import com.lirxowo.carryonextend.trigger.TriggerRegistry;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -189,6 +190,7 @@ public class EntityThrowHandler {
 
         if (entity instanceof PrimedTnt primedTnt) {
             primedTnt.addTag("thrownBy:" + player.getUUID().toString());
+            TriggerRegistry.TNT_THROW.get().trigger(player);
         }
 
         float pitch = Math.max(0.5f, Math.min(1.8f, 0.8f + powerFactor * 0.8f));

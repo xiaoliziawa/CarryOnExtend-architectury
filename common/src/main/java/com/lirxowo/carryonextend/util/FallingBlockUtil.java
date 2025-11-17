@@ -1,6 +1,7 @@
 package com.lirxowo.carryonextend.util;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
@@ -11,6 +12,7 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -25,7 +27,6 @@ import com.lirxowo.carryonextend.registry.EntityRegistry;
 import tschipp.carryon.common.carry.CarryOnData;
 import tschipp.carryon.common.carry.CarryOnDataManager;
 
-import java.util.Objects;
 
 public class FallingBlockUtil {
 
@@ -214,9 +215,14 @@ public class FallingBlockUtil {
         }
 
         BlockEntity tempEntity = entityBlock.newBlockEntity(pos, blockState);
-
         if (tempEntity != null) {
-            BlockItem.setBlockEntityData(itemStack, tempEntity.getType(), blockData);
+            try {
+                tempEntity.loadWithComponents(blockData, tempEntity.getLevel() != null ?
+                    tempEntity.getLevel().registryAccess() : null);
+                tempEntity.saveToItem(itemStack, tempEntity.getLevel() != null ?
+                    tempEntity.getLevel().registryAccess() : null);
+            } catch (Exception e) {
+            }
         }
 
         return itemStack;

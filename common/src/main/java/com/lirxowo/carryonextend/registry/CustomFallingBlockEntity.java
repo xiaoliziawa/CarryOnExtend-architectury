@@ -15,6 +15,8 @@ import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.EntityBlock;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import com.lirxowo.carryonextend.util.FallingBlockUtil;
@@ -286,10 +288,19 @@ public class CustomFallingBlockEntity extends FallingBlockEntity {
     }
 
     private ItemStack createItemStackWithData() {
-        return FallingBlockUtil.createItemStackWithData(
-            this.blockState,
-            this.getBlockData(),
-            this.blockPosition()
-        );
+        ItemStack itemStack = new ItemStack(this.blockState.getBlock());
+
+        CompoundTag blockData = this.getBlockData();
+        if (blockData != null && !blockData.isEmpty() &&
+            this.blockState.getBlock() instanceof EntityBlock entityBlock) {
+
+            BlockEntity tempEntity = entityBlock.newBlockEntity(this.blockPosition(), this.blockState);
+            if (tempEntity != null) {
+                tempEntity.loadWithComponents(blockData, this.level().registryAccess());
+                tempEntity.saveToItem(itemStack, this.level().registryAccess());
+            }
+        }
+
+        return itemStack;
     }
 }

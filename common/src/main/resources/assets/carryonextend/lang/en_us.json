@@ -1,3 +1,9 @@
 {
-  "message.carryonextend.power_level": "Throw Power: %1$s/%2$s (%3$s%%)"
+  "message.carryonextend.power_level": "Throw Power: %1$s/%2$s (%3$s%%)",
+  "advancement.carryonextend.root.title": "CarryOn Extend",
+  "advancement.carryonextend.root.description": "Throw everything you carry",
+  "advancement.carryonextend.tnt_thrower.title": "TNT Thrower",
+  "advancement.carryonextend.tnt_thrower.description": "Throw a lit TNT",
+  "advancement.carryonextend.self_destruction.title": "Self-Destruction",
+  "advancement.carryonextend.self_destruction.description": "Get killed by a TNT you threw"
 }
