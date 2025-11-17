@@ -1,6 +1,6 @@
 package com.lirxowo.carryonextend.registry;
 
-import com.lirxowo.carryonextend.Carryonextend;
+import com.lirxowo.carryonextend.CarryOnExtend;
 import dev.architectury.registry.registries.DeferredRegister;
 import dev.architectury.registry.registries.RegistrySupplier;
 import net.minecraft.core.registries.Registries;
@@ -9,7 +9,7 @@ import net.minecraft.world.entity.MobCategory;
 
 public class EntityRegistry {
     public static final DeferredRegister<EntityType<?>> ENTITIES =
-        DeferredRegister.create(Carryonextend.MOD_ID, Registries.ENTITY_TYPE);
+        DeferredRegister.create(CarryOnExtend.MOD_ID, Registries.ENTITY_TYPE);
 
     public static final RegistrySupplier<EntityType<CustomFallingBlockEntity>> CUSTOM_FALLING_BLOCK =
         ENTITIES.register("custom_falling_block", () ->
@@ -17,7 +17,7 @@ public class EntityRegistry {
                 .sized(0.98F, 0.98F)
                 .clientTrackingRange(10)
                 .updateInterval(20)
-                .build(Carryonextend.MOD_ID + ":custom_falling_block")
+                .build(CarryOnExtend.MOD_ID + ":custom_falling_block")
         );
 
     public static void init() {

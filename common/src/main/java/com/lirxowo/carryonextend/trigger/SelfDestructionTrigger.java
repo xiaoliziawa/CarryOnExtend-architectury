@@ -1,6 +1,7 @@
 package com.lirxowo.carryonextend.trigger;
 
 import com.mojang.serialization.Codec;
+import net.minecraft.advancements.Criterion;
 import net.minecraft.advancements.critereon.ContextAwarePredicate;
 import net.minecraft.advancements.critereon.SimpleCriterionTrigger;
 import net.minecraft.server.level.ServerPlayer;
@@ -23,5 +24,9 @@ public class SelfDestructionTrigger extends SimpleCriterionTrigger<SelfDestructi
                 .optionalFieldOf("player")
                 .xmap(TriggerInstance::new, TriggerInstance::player)
                 .codec();
+
+        public static Criterion<TriggerInstance> selfDestruction() {
+            return TriggerRegistry.SELF_DESTRUCTION.get().createCriterion(new TriggerInstance(Optional.empty()));
+        }
     }
 }

@@ -15,10 +15,10 @@
   "environment": "*",
   "entrypoints": {
     "main": [
-      "com.lirxowo.carryonextend.fabric.CarryonextendFabric"
+      "com.lirxowo.carryonextend.fabric.CarryOnExtendFabric"
     ],
     "client": [
-      "com.lirxowo.carryonextend.fabric.client.CarryonextendFabricClient"
+      "com.lirxowo.carryonextend.fabric.client.CarryOnExtendFabricClient"
     ]
   },
   "mixins": [

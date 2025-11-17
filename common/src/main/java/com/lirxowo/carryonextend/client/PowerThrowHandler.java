@@ -5,7 +5,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.player.Player;
-import com.lirxowo.carryonextend.Carryonextend;
+import com.lirxowo.carryonextend.CarryOnExtend;
 import tschipp.carryon.common.carry.CarryOnData;
 import tschipp.carryon.common.carry.CarryOnDataManager;
 
@@ -43,7 +43,7 @@ public class PowerThrowHandler {
         if (player == null) return;
 
         float percentage = getPowerFactor() * 100;
-        Component message = Component.translatable("message." + Carryonextend.MOD_ID + ".power_level",
+        Component message = Component.translatable("message." + CarryOnExtend.MOD_ID + ".power_level",
                                                 powerLevel, MAX_POWER_STEPS, (int)percentage);
 
         player.displayClientMessage(message, true);

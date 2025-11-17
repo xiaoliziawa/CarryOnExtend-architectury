@@ -1,0 +1,28 @@
+{
+  "parent": "carryonextend:tnt_thrower",
+  "criteria": {
+    "self_destruction": {
+      "trigger": "carryonextend:self_destruction"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancement.carryonextend.self_destruction.description"
+    },
+    "frame": "goal",
+    "hidden": true,
+    "icon": {
+      "count": 1,
+      "id": "minecraft:tnt_minecart"
+    },
+    "title": {
+      "translate": "advancement.carryonextend.self_destruction.title"
+    }
+  },
+  "requirements": [
+    [
+      "self_destruction"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

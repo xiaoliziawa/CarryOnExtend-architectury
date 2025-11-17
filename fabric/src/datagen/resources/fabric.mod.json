@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 1,
+  "id": "carryonextend-datagen",
+  "version": "1",
+  "entrypoints": {
+    "fabric-datagen": ["com.lirxowo.carryonextend.fabric.datagen.ModDataGenerator"]
+  }
+}

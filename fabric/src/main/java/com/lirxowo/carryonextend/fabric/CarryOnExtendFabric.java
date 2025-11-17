@@ -1,17 +1,17 @@
 package com.lirxowo.carryonextend.fabric;
 
-import com.lirxowo.carryonextend.Carryonextend;
+import com.lirxowo.carryonextend.CarryOnExtend;
 import com.lirxowo.carryonextend.events.PlayerDeathHandler;
 import com.lirxowo.carryonextend.fabric.network.FabricNetworkHandler;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.minecraft.server.level.ServerPlayer;
 
-public final class CarryonextendFabric implements ModInitializer {
+public final class CarryOnExtendFabric implements ModInitializer {
     @Override
     public void onInitialize() {
 
-        Carryonextend.init();
+        CarryOnExtend.init();
 
         FabricNetworkHandler.registerServerReceivers();
 
