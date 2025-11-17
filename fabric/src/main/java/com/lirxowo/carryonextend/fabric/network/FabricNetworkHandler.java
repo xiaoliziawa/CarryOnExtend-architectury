@@ -8,10 +8,8 @@ import com.lirxowo.carryonextend.network.ThrowBlockPacket;
 import com.lirxowo.carryonextend.network.ThrowEntityPacket;
 import com.lirxowo.carryonextend.network.ThrowPowerPacket;
 import dev.architectury.networking.NetworkManager;
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.phys.Vec3;
 
 public class FabricNetworkHandler {
 
@@ -84,13 +82,10 @@ public class FabricNetworkHandler {
             return;
         }
 
+        // 设置速度
         player.setDeltaMovement(packet.x(), packet.y(), packet.z());
         player.hurtMarked = true;
         player.setOnGround(false);
-
-        Vec3 currentMotion = player.getDeltaMovement();
-        player.setDeltaMovement(currentMotion.x, currentMotion.y + 0.1, currentMotion.z);
-
         player.fallDistance = 0.0f;
     }
 }

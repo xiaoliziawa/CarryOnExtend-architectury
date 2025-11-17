@@ -21,6 +21,8 @@ import tschipp.carryon.common.carry.CarryOnData.CarryType;
 import tschipp.carryon.common.carry.CarryOnDataManager;
 import tschipp.carryon.common.scripting.CarryOnScript.ScriptEffects;
 import tschipp.carryon.networking.clientbound.ClientboundStartRidingPacket;
+import tschipp.carryon.platform.Services;
+import tschipp.carryon.Constants;
 
 import java.util.List;
 import java.util.UUID;
@@ -72,7 +74,7 @@ public class EntityThrowHandler {
                     List<ServerPlayer> allPlayers = serverLevel.getServer().getPlayerList().getPlayers();
                     ClientboundStartRidingPacket stopRidingPacket = new ClientboundStartRidingPacket(passenger.getId(), false);
                     for (ServerPlayer serverPlayer : allPlayers) {
-                        NetworkHandler.sendToPlayer(serverPlayer, stopRidingPacket);
+                        Services.PLATFORM.sendPacketToPlayer(Constants.PACKET_ID_START_RIDING, stopRidingPacket, serverPlayer);
                     }
                 }
 
@@ -82,17 +84,24 @@ public class EntityThrowHandler {
                 passenger.setPos(playerPos);
 
                 if (passenger instanceof ServerPlayer thrownPlayer) {
-                    thrownPlayer.connection.teleport(
-                            playerPos.x, playerPos.y, playerPos.z,
-                            thrownPlayer.getYRot(), thrownPlayer.getXRot()
-                    );
+                    thrownPlayer.teleportTo(playerPos.x, playerPos.y, playerPos.z);
 
-                    NetworkHandler.sendToPlayer(
-                            thrownPlayer,
-                            new PlayerThrowPacket(velocity.x, velocity.y, velocity.z)
-                    );
+                    thrownPlayer.getServer().tell(new net.minecraft.server.TickTask(
+                            thrownPlayer.getServer().getTickCount() + 1,
+                            () -> {
+                                thrownPlayer.setDeltaMovement(velocity);
+                                thrownPlayer.hurtMarked = true;
+                                thrownPlayer.setOnGround(false);
+
+                                NetworkHandler.sendToPlayer(
+                                        thrownPlayer,
+                                        new PlayerThrowPacket(velocity.x, velocity.y, velocity.z)
+                                );
+                            }
+                    ));
                 } else {
                     passenger.setDeltaMovement(velocity);
+                    passenger.hurtMarked = true;
                 }
 
                 float pitch = Math.max(0.5f, Math.min(1.8f, 0.8f + powerFactor * 0.8f));
