@@ -24,6 +24,15 @@ configurations {
     }
 }
 
+fabricApi {
+    configureDataGeneration {
+        client = true
+        createSourceSet = true
+        modId = "carryonextend-datagen"
+        outputDirectory = project(":common").file("src/main/generated")
+    }
+}
+
 dependencies {
     modImplementation "net.fabricmc:fabric-loader:$rootProject.fabric_loader_version"
 

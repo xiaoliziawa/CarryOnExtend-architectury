@@ -1,0 +1,26 @@
+{
+  "criteria": {
+    "throw_tnt": {
+      "trigger": "carryonextend:tnt_throw"
+    }
+  },
+  "display": {
+    "background": "minecraft:textures/gui/advancements/backgrounds/adventure.png",
+    "description": {
+      "translate": "advancement.carryonextend.tnt_thrower.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "minecraft:tnt"
+    },
+    "title": {
+      "translate": "advancement.carryonextend.tnt_thrower.title"
+    }
+  },
+  "requirements": [
+    [
+      "throw_tnt"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

@@ -1,6 +1,6 @@
 package com.lirxowo.carryonextend.neoforge;
 
-import com.lirxowo.carryonextend.Carryonextend;
+import com.lirxowo.carryonextend.CarryOnExtend;
 import com.lirxowo.carryonextend.client.ClientSetup;
 import com.lirxowo.carryonextend.client.renderer.CustomFallingBlockRenderer;
 import com.lirxowo.carryonextend.events.PlayerDeathHandler;
@@ -16,11 +16,11 @@ import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 
-@Mod(Carryonextend.MOD_ID)
-public final class CarryonextendNeoForge {
-    public CarryonextendNeoForge(IEventBus modEventBus) {
+@Mod(CarryOnExtend.MOD_ID)
+public final class CarryOnExtendNeoForge {
+    public CarryOnExtendNeoForge(IEventBus modEventBus) {
 
-        Carryonextend.init();
+        CarryOnExtend.init();
 
         NeoForgeNetworkHandler.registerServerReceivers();
 

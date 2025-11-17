@@ -6,7 +6,7 @@ import com.lirxowo.carryonextend.trigger.TriggerRegistry;
 import com.mojang.logging.LogUtils;
 import org.slf4j.Logger;
 
-public final class Carryonextend {
+public final class CarryOnExtend {
     public static final String MOD_ID = "carryonextend";
     public static final Logger LOGGER = LogUtils.getLogger();
 
