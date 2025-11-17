@@ -9,7 +9,7 @@
     "description": {
       "translate": "advancement.carryonextend.self_destruction.description"
     },
-    "frame": "goal",
+    "frame": "challenge",
     "hidden": true,
     "icon": {
       "count": 1,

@@ -44,7 +44,7 @@ public class ModAdvancementProvider extends AdvancementProvider {
                             Component.translatable("advancement.carryonextend.self_destruction.title"),
                             Component.translatable("advancement.carryonextend.self_destruction.description"),
                             null,
-                            AdvancementType.GOAL,
+                            AdvancementType.CHALLENGE,
                             true, true, true)
                     .addCriterion("self_destruction", SelfDestructionTrigger.TriggerInstance.selfDestruction())
                     .save(writer, CarryOnExtend.MOD_ID + ":self_destruction");
