@@ -1,11 +1,11 @@
 package com.lirxowo.carryonextend.client;
 
+import com.lirxowo.carryonextend.CarryOnExtend;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.player.Player;
-import com.lirxowo.carryonextend.CarryOnExtend;
 import tschipp.carryon.common.carry.CarryOnData;
 import tschipp.carryon.common.carry.CarryOnDataManager;
 

@@ -2,7 +2,6 @@ package com.lirxowo.carryonextend.neoforge.network;
 
 import com.lirxowo.carryonextend.handler.BlockThrowHandler;
 import com.lirxowo.carryonextend.handler.EntityThrowHandler;
-import com.lirxowo.carryonextend.network.PlayerThrowPacket;
 import com.lirxowo.carryonextend.network.ThrowBlockPacket;
 import com.lirxowo.carryonextend.network.ThrowEntityPacket;
 import com.lirxowo.carryonextend.network.ThrowPowerPacket;
@@ -46,47 +45,38 @@ public class NeoForgeNetworkHandler {
                 NetworkManager.Side.C2S,
                 ThrowPowerPacket.TYPE,
                 ThrowPowerPacket.CODEC,
-                (packet, context) -> {
+                (packet, context) -> context.queue(() ->{
                     Player player = context.getPlayer();
                     if (player instanceof ServerPlayer serverPlayer) {
-                        context.queue(() -> {
-                            if (packet.isEntity()) {
-                                EntityThrowHandler.throwCarriedEntityWithPower(serverPlayer, packet.power());
-                            } else {
-                                BlockThrowHandler.throwCarriedBlockWithPower(serverPlayer, packet.power());
-                            }
-                        });
+                        float power = packet.power();
+                        if (packet.isEntity()) {
+                            EntityThrowHandler.throwCarriedEntityWithPower(serverPlayer, power);
+                        } else {
+                            BlockThrowHandler.throwCarriedBlockWithPower(serverPlayer, power);
+                        }
+
                     }
-                }
+                })
         );
     }
 
     public static void registerClientReceivers() {
 
-        NetworkManager.registerReceiver(
-                NetworkManager.Side.S2C,
-                PlayerThrowPacket.TYPE,
-                PlayerThrowPacket.CODEC,
-                (packet, context) -> {
-                    Player player = context.getPlayer();
-                    if (player != null) {
-                        context.queue(() -> {
-                            handlePlayerThrowPacket(packet, player);
-                        });
-                    }
-                }
-        );
+//        NetworkManager.registerReceiver(
+//                NetworkManager.Side.S2C,
+//                PlayerThrowPacket.TYPE,
+//                PlayerThrowPacket.CODEC,
+//                (packet, context) -> context.queue(() -> {
+//                    Player player = context.getPlayer();
+//                    if (player != null) {
+//                        handlePlayerThrowPacket(player);
+//                    }
+//                })
+//        );
     }
 
-    private static void handlePlayerThrowPacket(PlayerThrowPacket packet, Player player) {
-        if (player == null) {
-            return;
-        }
-
-        // 设置速度
-        player.setDeltaMovement(packet.x(), packet.y(), packet.z());
-        player.hurtMarked = true;
-        player.setOnGround(false);
-        player.fallDistance = 0.0f;
-    }
+//    private static void handlePlayerThrowPacket(Player player) {
+//        player.setOnGround(false);
+//        player.fallDistance = 0.0f;
+//    }
 }

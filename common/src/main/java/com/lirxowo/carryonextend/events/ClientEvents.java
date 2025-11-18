@@ -1,11 +1,11 @@
 package com.lirxowo.carryonextend.events;
 
-import com.mojang.blaze3d.platform.InputConstants;
-import net.minecraft.client.Minecraft;
-import net.minecraft.world.entity.player.Player;
 import com.lirxowo.carryonextend.client.PowerThrowHandler;
 import com.lirxowo.carryonextend.network.NetworkHandler;
 import com.lirxowo.carryonextend.network.ThrowPowerPacket;
+import com.mojang.blaze3d.platform.InputConstants;
+import net.minecraft.client.Minecraft;
+import net.minecraft.world.entity.player.Player;
 import tschipp.carryon.common.carry.CarryOnData;
 import tschipp.carryon.common.carry.CarryOnDataManager;
 

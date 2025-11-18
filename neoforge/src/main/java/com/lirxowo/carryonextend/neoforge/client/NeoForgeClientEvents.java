@@ -1,8 +1,8 @@
 package com.lirxowo.carryonextend.neoforge.client;
 
 import com.lirxowo.carryonextend.CarryOnExtend;
-import com.lirxowo.carryonextend.events.ClientEvents;
 import com.lirxowo.carryonextend.client.PowerThrowHandler;
+import com.lirxowo.carryonextend.events.ClientEvents;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;

@@ -2,7 +2,6 @@ package com.lirxowo.carryonextend.fabric.network;
 
 import com.lirxowo.carryonextend.handler.BlockThrowHandler;
 import com.lirxowo.carryonextend.handler.EntityThrowHandler;
-import com.lirxowo.carryonextend.network.NetworkHandler;
 import com.lirxowo.carryonextend.network.PlayerThrowPacket;
 import com.lirxowo.carryonextend.network.ThrowBlockPacket;
 import com.lirxowo.carryonextend.network.ThrowEntityPacket;

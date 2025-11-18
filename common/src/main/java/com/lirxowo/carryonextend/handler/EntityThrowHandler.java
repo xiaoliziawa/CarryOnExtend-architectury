@@ -1,6 +1,7 @@
 package com.lirxowo.carryonextend.handler;
 
 import com.lirxowo.carryonextend.trigger.TriggerRegistry;
+import com.lirxowo.carryonextend.util.FallingBlockUtil;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -13,19 +14,19 @@ import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.item.PrimedTnt;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
-import com.lirxowo.carryonextend.network.NetworkHandler;
-import com.lirxowo.carryonextend.network.PlayerThrowPacket;
-import com.lirxowo.carryonextend.util.FallingBlockUtil;
+import tschipp.carryon.Constants;
 import tschipp.carryon.common.carry.CarryOnData;
 import tschipp.carryon.common.carry.CarryOnData.CarryType;
 import tschipp.carryon.common.carry.CarryOnDataManager;
 import tschipp.carryon.common.scripting.CarryOnScript.ScriptEffects;
 import tschipp.carryon.networking.clientbound.ClientboundStartRidingPacket;
 import tschipp.carryon.platform.Services;
-import tschipp.carryon.Constants;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class EntityThrowHandler {
 
@@ -81,37 +82,28 @@ public class EntityThrowHandler {
                 passenger.stopRiding();
                 player.ejectPassengers();
 
-                passenger.setPos(playerPos);
+                passenger.teleportTo(playerPos.x, playerPos.y, playerPos.z);
 
-                if (passenger instanceof ServerPlayer thrownPlayer) {
-                    thrownPlayer.teleportTo(playerPos.x, playerPos.y, playerPos.z);
+                //TickTask 不知道为什么并不生效，故用此替代
+                ScheduledExecutorService service = Executors.newScheduledThreadPool(1);
+                service.schedule(() -> {
+                    if (passenger instanceof ServerPlayer thrownPlayer) {
+                        thrownPlayer.setDeltaMovement(velocity);
+                        thrownPlayer.hurtMarked = true;
+                        thrownPlayer.setOnGround(false);
+                        thrownPlayer.fallDistance = 0.0f;
+                    } else {
+                        passenger.setDeltaMovement(velocity);
+                        passenger.hurtMarked = true;
+                    }
 
-                    thrownPlayer.getServer().tell(new net.minecraft.server.TickTask(
-                            thrownPlayer.getServer().getTickCount() + 1,
-                            () -> {
-                                thrownPlayer.setDeltaMovement(velocity);
-                                thrownPlayer.hurtMarked = true;
-                                thrownPlayer.setOnGround(false);
-
-                                NetworkHandler.sendToPlayer(
-                                        thrownPlayer,
-                                        new PlayerThrowPacket(velocity.x, velocity.y, velocity.z)
-                                );
-                            }
-                    ));
-                } else {
-                    passenger.setDeltaMovement(velocity);
-                    passenger.hurtMarked = true;
-                }
-
-                float pitch = Math.max(0.5f, Math.min(1.8f, 0.8f + powerFactor * 0.8f));
-                level.playSound(null, player.getX(), player.getY(), player.getZ(),
-                        SoundEvents.PLAYER_ATTACK_SWEEP, SoundSource.PLAYERS, 0.8F, pitch);
-
+                    float pitch = Math.max(0.5f, Math.min(1.8f, 0.8f + powerFactor * 0.8f));
+                    level.playSound(null, player.getX(), player.getY(), player.getZ(),
+                            SoundEvents.PLAYER_ATTACK_SWEEP, SoundSource.PLAYERS, 0.8F, pitch);
+                    player.swing(InteractionHand.MAIN_HAND, true);
+                }, 51, TimeUnit.MILLISECONDS);
                 carry.clear();
                 CarryOnDataManager.setCarryData(player, carry);
-
-                player.swing(InteractionHand.MAIN_HAND, true);
                 return;
             }
         }

@@ -39,6 +39,9 @@ dependencies {
     // CarryOn mod dependency (NeoForge)
     modImplementation "curse.maven:carry-on-274259:5649344"
 
+    //游戏内账号切换Mod，用于辅助调试
+//    modImplementation "curse.maven:in-game-account-switcher-232676:5474316"
+
     common(project(path: ':common', configuration: 'namedElements')) { transitive false }
     shadowBundle project(path: ':common', configuration: 'transformProductionNeoForge')
 }

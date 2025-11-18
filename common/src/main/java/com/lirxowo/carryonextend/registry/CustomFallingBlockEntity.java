@@ -1,5 +1,6 @@
 package com.lirxowo.carryonextend.registry;
 
+import com.lirxowo.carryonextend.util.FallingBlockUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
@@ -19,7 +20,6 @@ import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
-import com.lirxowo.carryonextend.util.FallingBlockUtil;
 
 public class CustomFallingBlockEntity extends FallingBlockEntity {
     private static final EntityDataAccessor<CompoundTag> BLOCK_DATA = SynchedEntityData.defineId(CustomFallingBlockEntity.class, EntityDataSerializers.COMPOUND_TAG);

@@ -23,6 +23,7 @@ public final class CarryOnExtendNeoForge {
         CarryOnExtend.init();
 
         NeoForgeNetworkHandler.registerServerReceivers();
+//        NeoForgeNetworkHandler.registerClientReceivers();
 
         NeoForge.EVENT_BUS.addListener(this::onPlayerDeath);
 
@@ -39,10 +40,7 @@ public final class CarryOnExtendNeoForge {
     }
 
     private void onClientSetup(FMLClientSetupEvent event) {
-        event.enqueueWork(() -> {
-            ClientSetup.init();
-            NeoForgeNetworkHandler.registerClientReceivers();
-        });
+        event.enqueueWork(ClientSetup::init);
     }
 
     private void onRegisterEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {

@@ -1,5 +1,6 @@
 package com.lirxowo.carryonextend.client.renderer;
 
+import com.lirxowo.carryonextend.registry.CustomFallingBlockEntity;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -20,7 +21,6 @@ import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import com.lirxowo.carryonextend.registry.CustomFallingBlockEntity;
 import org.jetbrains.annotations.NotNull;
 
 public class CustomFallingBlockRenderer extends EntityRenderer<CustomFallingBlockEntity> {
