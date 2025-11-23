@@ -129,9 +129,7 @@ public class CustomFallingBlockRenderer extends EntityRenderer<CustomFallingBloc
     private void renderBlockModel(BlockState blockState, Level level, BlockPos renderPos, PoseStack poseStack, MultiBufferSource buffer, int packedLight, boolean useTranslucentMovingBlock) {
         BakedModel model = this.dispatcher.getBlockModel(blockState);
         RandomSource randomSource = RandomSource.create();
-
         RenderType renderType = useTranslucentMovingBlock ? RenderType.translucentMovingBlock() : RenderType.cutout();
-
         this.dispatcher.getModelRenderer().tesselateBlock(level, model, blockState, renderPos, poseStack, buffer.getBuffer(renderType), false, randomSource, blockState.getSeed(renderPos), OverlayTexture.NO_OVERLAY);
     }
 
