@@ -7,6 +7,12 @@ architectury {
     fabric()
 }
 
+loom {
+    mixin {
+        defaultRefmapName = "carryonextend-fabric-refmap.json"
+    }
+}
+
 configurations {
     common {
         canBeResolved = true
