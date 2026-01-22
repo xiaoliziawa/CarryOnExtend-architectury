@@ -47,7 +47,7 @@ dependencies {
     modImplementation "dev.architectury:architectury-fabric:$rootProject.architectury_api_version"
 
     // CarryOn mod dependency (Fabric)
-    modImplementation "curse.maven:carry-on-274259:5649345"
+    modImplementation "curse.maven:carry-on-274259:7393887"
 
     common(project(path: ':common', configuration: 'namedElements')) { transitive false }
     shadowBundle project(path: ':common', configuration: 'transformProductionFabric')

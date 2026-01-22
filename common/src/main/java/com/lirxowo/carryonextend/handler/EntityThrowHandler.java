@@ -8,6 +8,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
@@ -106,6 +107,8 @@ public class EntityThrowHandler {
                 }, 51, TimeUnit.MILLISECONDS);
                 carry.clear();
                 CarryOnDataManager.setCarryData(player, carry);
+                if (!player.isCreative() || Constants.COMMON_CONFIG.settings.slownessInCreative)
+                    player.removeEffect(MobEffects.MOVEMENT_SLOWDOWN);
                 return;
             }
         }
@@ -114,6 +117,8 @@ public class EntityThrowHandler {
         if (entityNBT == null) {
             carry.clear();
             CarryOnDataManager.setCarryData(player, carry);
+            if (!player.isCreative() || Constants.COMMON_CONFIG.settings.slownessInCreative)
+                player.removeEffect(MobEffects.MOVEMENT_SLOWDOWN);
             return;
         }
 
@@ -149,6 +154,8 @@ public class EntityThrowHandler {
                 } catch (Exception e) {
                     carry.clear();
                     CarryOnDataManager.setCarryData(player, carry);
+                    if (!player.isCreative() || Constants.COMMON_CONFIG.settings.slownessInCreative)
+                        player.removeEffect(MobEffects.MOVEMENT_SLOWDOWN);
                     return;
                 }
             }
@@ -156,6 +163,8 @@ public class EntityThrowHandler {
             if (entity == null) {
                 carry.clear();
                 CarryOnDataManager.setCarryData(player, carry);
+                if (!player.isCreative() || Constants.COMMON_CONFIG.settings.slownessInCreative)
+                    player.removeEffect(MobEffects.MOVEMENT_SLOWDOWN);
                 return;
             }
         }
@@ -202,6 +211,8 @@ public class EntityThrowHandler {
 
         carry.clear();
         CarryOnDataManager.setCarryData(player, carry);
+        if (!player.isCreative() || Constants.COMMON_CONFIG.settings.slownessInCreative)
+            player.removeEffect(MobEffects.MOVEMENT_SLOWDOWN);
         player.swing(InteractionHand.MAIN_HAND, true);
     }
 }
