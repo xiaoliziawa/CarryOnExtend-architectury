@@ -13,6 +13,34 @@ allprojects {
     version = rootProject.mod_version
 }
 
+tasks.register('buildAll') {
+    group = 'build'
+    description = 'Build both Fabric and NeoForge versions and copy jars to root build/libs'
+
+    dependsOn ':fabric:build', ':neoforge:build'
+
+    doLast {
+        def outputDir = file("${rootProject.projectDir}/build/libs")
+        outputDir.mkdirs()
+
+        copy {
+            from "${rootProject.projectDir}/fabric/build/libs"
+            into outputDir
+            include '*.jar'
+            exclude '*-sources.jar', '*-dev.jar', '*-shadow.jar'
+        }
+
+        copy {
+            from "${rootProject.projectDir}/neoforge/build/libs"
+            into outputDir
+            include '*.jar'
+            exclude '*-sources.jar', '*-dev.jar', '*-shadow.jar'
+        }
+
+        println "Jars copied to: ${outputDir}"
+    }
+}
+
 subprojects {
     apply plugin: 'dev.architectury.loom'
     apply plugin: 'architectury-plugin'
