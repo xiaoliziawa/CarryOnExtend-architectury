@@ -14,7 +14,7 @@ public class NeoForgeClientEvents {
     @SubscribeEvent
     public static void onKeyInput(InputEvent.Key event) {
 
-        boolean handled = ClientEvents.onKeyInput(event.getKey(), event.getAction());
+        boolean handled = ClientEvents.onKeyInput(event.getKey(), event.getScanCode(), event.getAction());
 
     }
 

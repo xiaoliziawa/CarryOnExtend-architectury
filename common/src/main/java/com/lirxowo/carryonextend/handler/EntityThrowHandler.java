@@ -2,18 +2,23 @@ package com.lirxowo.carryonextend.handler;
 
 import com.lirxowo.carryonextend.trigger.TriggerRegistry;
 import com.lirxowo.carryonextend.util.FallingBlockUtil;
+import net.minecraft.core.UUIDUtil;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.item.PrimedTnt;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.storage.TagValueInput;
+import net.minecraft.world.level.storage.TagValueOutput;
 import net.minecraft.world.phys.Vec3;
 import tschipp.carryon.Constants;
 import tschipp.carryon.common.carry.CarryOnData;
@@ -108,7 +113,7 @@ public class EntityThrowHandler {
                 carry.clear();
                 CarryOnDataManager.setCarryData(player, carry);
                 if (!player.isCreative() || Constants.COMMON_CONFIG.settings.slownessInCreative)
-                    player.removeEffect(MobEffects.MOVEMENT_SLOWDOWN);
+                    player.removeEffect(MobEffects.SLOWNESS);
                 return;
             }
         }
@@ -118,7 +123,7 @@ public class EntityThrowHandler {
             carry.clear();
             CarryOnDataManager.setCarryData(player, carry);
             if (!player.isCreative() || Constants.COMMON_CONFIG.settings.slownessInCreative)
-                player.removeEffect(MobEffects.MOVEMENT_SLOWDOWN);
+                player.removeEffect(MobEffects.SLOWNESS);
             return;
         }
 
@@ -128,12 +133,16 @@ public class EntityThrowHandler {
 
         String entityTypeString = "";
         if (entityNBT.contains("id")) {
-            entityTypeString = entityNBT.getString("id");
+            entityTypeString = entityNBT.getStringOr("id", "");
         }
 
         UUID entityUUID = null;
-        if (entityNBT.hasUUID("UUID")) {
-            entityUUID = entityNBT.getUUID("UUID");
+        try (ProblemReporter.ScopedCollector reporter = new ProblemReporter.ScopedCollector(Constants.LOG)) {
+            entityUUID = TagValueInput.create(reporter, level.registryAccess(), entityNBT)
+                    .read("UUID", UUIDUtil.CODEC)
+                    .orElse(null);
+        } catch (Exception e) {
+            // UUID not present or invalid
         }
 
         Entity entity = carry.getEntity(level);
@@ -143,9 +152,11 @@ public class EntityThrowHandler {
                 try {
                     EntityType<?> entityType = EntityType.byString(entityTypeString).orElse(null);
                     if (entityType != null) {
-                        entity = entityType.create(serverLevel);
-                        if (entity != null && entityNBT != null) {
-                            entity.load(entityNBT);
+                        entity = entityType.create(serverLevel, EntitySpawnReason.LOAD);
+                        if (entity != null) {
+                            try (ProblemReporter.ScopedCollector reporter = new ProblemReporter.ScopedCollector(Constants.LOG)) {
+                                entity.load(TagValueInput.create(reporter, level.registryAccess(), entityNBT));
+                            }
                             if (entityUUID != null) {
                                 entity.setUUID(entityUUID);
                             }
@@ -155,7 +166,7 @@ public class EntityThrowHandler {
                     carry.clear();
                     CarryOnDataManager.setCarryData(player, carry);
                     if (!player.isCreative() || Constants.COMMON_CONFIG.settings.slownessInCreative)
-                        player.removeEffect(MobEffects.MOVEMENT_SLOWDOWN);
+                        player.removeEffect(MobEffects.SLOWNESS);
                     return;
                 }
             }
@@ -164,7 +175,7 @@ public class EntityThrowHandler {
                 carry.clear();
                 CarryOnDataManager.setCarryData(player, carry);
                 if (!player.isCreative() || Constants.COMMON_CONFIG.settings.slownessInCreative)
-                    player.removeEffect(MobEffects.MOVEMENT_SLOWDOWN);
+                    player.removeEffect(MobEffects.SLOWNESS);
                 return;
             }
         }
@@ -175,20 +186,27 @@ public class EntityThrowHandler {
         if (carry.getActiveScript().isPresent()) {
             ScriptEffects effects = carry.getActiveScript().get().scriptEffects();
             String cmd = effects.commandPlace();
-            if (!cmd.isEmpty())
-                player.getServer().getCommands().performPrefixedCommand(player.getServer().createCommandSourceStack(),
-                        "/execute as " + player.getGameProfile().getName() + " run " + cmd);
+            if (!cmd.isEmpty()) {
+                player.level().getServer().getCommands().performPrefixedCommand(
+                        player.level().getServer().createCommandSourceStack(),
+                        "/execute as " + player.getGameProfile().name() + " run " + cmd);
+            }
         }
 
-        if (entityNBT != null && !entityNBT.isEmpty()) {
+        if (!entityNBT.isEmpty()) {
             if (entityNBT.contains("Pos")) {
                 entityNBT.remove("Pos");
             }
 
-            CompoundTag posTag = new CompoundTag();
-            entity.saveWithoutId(posTag);
-            entityNBT.merge(posTag);
-            entity.load(entityNBT);
+            try (ProblemReporter.ScopedCollector reporter = new ProblemReporter.ScopedCollector(Constants.LOG)) {
+                TagValueOutput posOutput = TagValueOutput.createWithContext(reporter, level.registryAccess());
+                entity.saveWithoutId(posOutput);
+                CompoundTag posTag = posOutput.buildResult();
+                entityNBT.merge(posTag);
+                entity.load(TagValueInput.create(reporter, level.registryAccess(), entityNBT));
+            } catch (Exception e) {
+                Constants.LOG.error("Failed to save/load entity data", e);
+            }
         }
 
         level.addFreshEntity(entity);
@@ -201,7 +219,7 @@ public class EntityThrowHandler {
         }
 
         if (entity instanceof PrimedTnt primedTnt) {
-            primedTnt.addTag("thrownBy:" + player.getUUID().toString());
+            primedTnt.addTag("thrownBy:" + player.getUUID());
             TriggerRegistry.TNT_THROW.get().trigger(player);
         }
 
@@ -212,7 +230,7 @@ public class EntityThrowHandler {
         carry.clear();
         CarryOnDataManager.setCarryData(player, carry);
         if (!player.isCreative() || Constants.COMMON_CONFIG.settings.slownessInCreative)
-            player.removeEffect(MobEffects.MOVEMENT_SLOWDOWN);
+            player.removeEffect(MobEffects.SLOWNESS);
         player.swing(InteractionHand.MAIN_HAND, true);
     }
 }

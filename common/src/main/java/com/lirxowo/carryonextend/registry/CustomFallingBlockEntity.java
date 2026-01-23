@@ -7,26 +7,29 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.item.FallingBlockEntity;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.GameRules;
+import net.minecraft.world.level.gamerules.GameRules;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.Vec3;
 
 public class CustomFallingBlockEntity extends FallingBlockEntity {
-    private static final EntityDataAccessor<CompoundTag> BLOCK_DATA = SynchedEntityData.defineId(CustomFallingBlockEntity.class, EntityDataSerializers.COMPOUND_TAG);
     private static final EntityDataAccessor<String> BLOCK_ID = SynchedEntityData.defineId(CustomFallingBlockEntity.class, EntityDataSerializers.STRING);
     private static final EntityDataAccessor<Integer> BLOCK_STATE_META = SynchedEntityData.defineId(CustomFallingBlockEntity.class, EntityDataSerializers.INT);
 
     private BlockState blockState;
+    private CompoundTag blockData;
     private int ticksExisted = 0;
     private boolean needsStateUpdate = false;
 
@@ -61,7 +64,6 @@ public class CustomFallingBlockEntity extends FallingBlockEntity {
     @Override
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
         super.defineSynchedData(builder);
-        builder.define(BLOCK_DATA, new CompoundTag());
         builder.define(BLOCK_ID, "minecraft:stone");
         builder.define(BLOCK_STATE_META, 0);
     }
@@ -82,7 +84,7 @@ public class CustomFallingBlockEntity extends FallingBlockEntity {
 
         this.blockState = state;
 
-        ResourceLocation blockId = BuiltInRegistries.BLOCK.getKey(state.getBlock());
+        Identifier blockId = BuiltInRegistries.BLOCK.getKey(state.getBlock());
         if (blockId != null) {
             this.entityData.set(BLOCK_ID, blockId.toString());
         }
@@ -105,8 +107,8 @@ public class CustomFallingBlockEntity extends FallingBlockEntity {
                         return;
                     }
 
-                    ResourceLocation blockId = ResourceLocation.parse(blockIdStr);
-                    Block block = BuiltInRegistries.BLOCK.get(blockId);
+                    Identifier blockId = Identifier.parse(blockIdStr);
+                    Block block = BuiltInRegistries.BLOCK.getValue(blockId);
                     if (block != null && block != Blocks.AIR) {
                         this.blockState = block.defaultBlockState();
                         this.needsStateUpdate = false;
@@ -125,19 +127,19 @@ public class CustomFallingBlockEntity extends FallingBlockEntity {
     }
 
     public void setBlockData(CompoundTag blockData) {
-        this.entityData.set(BLOCK_DATA, blockData);
+        this.blockData = blockData;
     }
 
     public CompoundTag getBlockData() {
-        return this.entityData.get(BLOCK_DATA);
+        return this.blockData;
     }
 
     @Override
-    public void addAdditionalSaveData(CompoundTag tag) {
-        super.addAdditionalSaveData(tag);
+    protected void addAdditionalSaveData(ValueOutput output) {
+        super.addAdditionalSaveData(output);
 
         FallingBlockUtil.saveBlockDataToNBT(
-            tag,
+            output,
             this.getBlockState(),
             this.getBlockData(),
             this.entityData.get(BLOCK_ID),
@@ -146,22 +148,22 @@ public class CustomFallingBlockEntity extends FallingBlockEntity {
     }
 
     @Override
-    public void readAdditionalSaveData(CompoundTag tag) {
-        super.readAdditionalSaveData(tag);
+    protected void readAdditionalSaveData(ValueInput input) {
+        super.readAdditionalSaveData(input);
 
-        if (tag.contains("CustomBlockData")) {
-            this.setBlockData(tag.getCompound("CustomBlockData"));
-        }
+        // Read custom block data
+        this.blockData = input.read("CustomBlockData", CompoundTag.CODEC).orElse(null);
 
-        if (tag.contains("BlockState")) {
+        // Try to read block state from various sources
+        if (input.child("BlockState").isPresent()) {
             try {
-                CompoundTag blockStateTag = tag.getCompound("BlockState");
-                int stateId = blockStateTag.getInt("id");
+                ValueInput blockStateInput = input.childOrEmpty("BlockState");
+                int stateId = blockStateInput.getIntOr("id", 0);
                 if (stateId > 0) {
                     this.blockState = Block.stateById(stateId);
                     this.needsStateUpdate = false;
 
-                    ResourceLocation blockId = BuiltInRegistries.BLOCK.getKey(this.blockState.getBlock());
+                    Identifier blockId = BuiltInRegistries.BLOCK.getKey(this.blockState.getBlock());
                     if (blockId != null) {
                         this.entityData.set(BLOCK_ID, blockId.toString());
                     }
@@ -171,11 +173,11 @@ public class CustomFallingBlockEntity extends FallingBlockEntity {
             }
         }
 
-        if ((this.blockState == null || this.blockState.getBlock() == Blocks.STONE) && tag.contains("BlockId")) {
+        if ((this.blockState == null || this.blockState.getBlock() == Blocks.STONE) && input.getString("BlockId").isPresent()) {
             try {
-                String blockIdStr = tag.getString("BlockId");
-                ResourceLocation blockId = ResourceLocation.parse(blockIdStr);
-                Block block = BuiltInRegistries.BLOCK.get(blockId);
+                String blockIdStr = input.getStringOr("BlockId", "");
+                Identifier blockId = Identifier.parse(blockIdStr);
+                Block block = BuiltInRegistries.BLOCK.getValue(blockId);
                 if (block != null && block != Blocks.AIR) {
                     this.blockState = block.defaultBlockState();
                     this.entityData.set(BLOCK_ID, blockIdStr);
@@ -185,12 +187,12 @@ public class CustomFallingBlockEntity extends FallingBlockEntity {
             }
         }
 
-        if ((this.blockState == null || this.blockState.getBlock() == Blocks.STONE) && tag.contains("EntityData")) {
+        if ((this.blockState == null || this.blockState.getBlock() == Blocks.STONE) && input.child("EntityData").isPresent()) {
             try {
-                CompoundTag entityData = tag.getCompound("EntityData");
-                if (entityData.contains("BLOCK_ID") && entityData.contains("BLOCK_STATE_META")) {
-                    String blockIdStr = entityData.getString("BLOCK_ID");
-                    int stateId = entityData.getInt("BLOCK_STATE_META");
+                ValueInput entityDataInput = input.childOrEmpty("EntityData");
+                if (entityDataInput.getString("BLOCK_ID").isPresent() && entityDataInput.getInt("BLOCK_STATE_META").isPresent()) {
+                    String blockIdStr = entityDataInput.getStringOr("BLOCK_ID", "");
+                    int stateId = entityDataInput.getIntOr("BLOCK_STATE_META", 0);
 
                     this.entityData.set(BLOCK_ID, blockIdStr);
                     this.entityData.set(BLOCK_STATE_META, stateId);
@@ -198,8 +200,8 @@ public class CustomFallingBlockEntity extends FallingBlockEntity {
                     if (stateId > 0) {
                         this.blockState = Block.stateById(stateId);
                     } else {
-                        ResourceLocation blockId = ResourceLocation.parse(blockIdStr);
-                        Block block = BuiltInRegistries.BLOCK.get(blockId);
+                        Identifier blockId = Identifier.parse(blockIdStr);
+                        Block block = BuiltInRegistries.BLOCK.getValue(blockId);
                         if (block != null && block != Blocks.AIR) {
                             this.blockState = block.defaultBlockState();
                         }
@@ -243,7 +245,7 @@ public class CustomFallingBlockEntity extends FallingBlockEntity {
 
         updateMovement();
 
-        if (!this.level().isClientSide && !this.isRemoved()) {
+        if (!this.level().isClientSide() && !this.isRemoved()) {
             BlockPos pos = this.blockPosition();
             boolean canPlace = this.level().getBlockState(pos).canBeReplaced();
 
@@ -274,14 +276,13 @@ public class CustomFallingBlockEntity extends FallingBlockEntity {
         }
     }
 
-    private boolean hasValidBlockEntity(BlockPos pos, CompoundTag blockData) {
-        return FallingBlockUtil.hasValidBlockEntity(this.level(), pos, blockData);
-    }
-
     private void dropAsItem() {
-        if (this.level().getGameRules().getBoolean(GameRules.RULE_DOENTITYDROPS)) {
-            ItemStack itemStack = createItemStackWithData();
-            this.spawnAtLocation(itemStack);
+        Level level = this.level();
+        if (level instanceof ServerLevel serverLevel) {
+            if (serverLevel.getGameRules().get(GameRules.ENTITY_DROPS)) {
+                ItemStack itemStack = createItemStackWithData();
+                this.spawnAtLocation(serverLevel, itemStack);
+            }
         }
 
         this.discard();
@@ -296,8 +297,8 @@ public class CustomFallingBlockEntity extends FallingBlockEntity {
 
             BlockEntity tempEntity = entityBlock.newBlockEntity(this.blockPosition(), this.blockState);
             if (tempEntity != null) {
-                tempEntity.loadWithComponents(blockData, this.level().registryAccess());
-                tempEntity.saveToItem(itemStack, this.level().registryAccess());
+                FallingBlockUtil.loadBlockEntityData(tempEntity, blockData, this.level());
+                FallingBlockUtil.saveBlockEntityToItem(tempEntity, itemStack, this.level());
             }
         }
 

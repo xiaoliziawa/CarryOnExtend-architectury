@@ -1,107 +1,142 @@
 package com.lirxowo.carryonextend.client.renderer;
 
+import com.lirxowo.carryonextend.client.renderer.state.CustomFallingBlockRenderState;
 import com.lirxowo.carryonextend.registry.CustomFallingBlockEntity;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.block.BlockRenderDispatcher;
-import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
+import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
-import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.client.resources.model.BakedModel;
-import net.minecraft.world.inventory.InventoryMenu;
+import net.minecraft.client.renderer.entity.state.EntityRenderState;
+import net.minecraft.client.renderer.state.CameraRenderState;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.RandomSource;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.util.ProblemReporter;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import org.jetbrains.annotations.NotNull;
+import net.minecraft.world.level.storage.TagValueInput;
 
-public class CustomFallingBlockRenderer extends EntityRenderer<CustomFallingBlockEntity> {
-    private final BlockRenderDispatcher dispatcher;
-    private float partialTicks;
+public class CustomFallingBlockRenderer extends EntityRenderer {
 
     public CustomFallingBlockRenderer(EntityRendererProvider.Context context) {
         super(context);
         this.shadowRadius = 0.5F;
-        this.dispatcher = context.getBlockRenderDispatcher();
     }
 
     @Override
-    public void render(CustomFallingBlockEntity entity, float entityYaw, float partialTicks, @NotNull PoseStack poseStack, @NotNull MultiBufferSource buffer, int packedLight) {
-        this.partialTicks = partialTicks;
+    public boolean shouldRender(Entity entity, Frustum culler, double camX, double camY, double camZ) {
+        if (!super.shouldRender(entity, culler, camX, camY, camZ)) {
+            return false;
+        }
+        if (entity instanceof CustomFallingBlockEntity customEntity) {
+            return customEntity.getBlockState() != customEntity.level().getBlockState(customEntity.blockPosition());
+        }
+        return true;
+    }
 
-        BlockState blockState = entity.getBlockState();
+    @Override
+    public CustomFallingBlockRenderState createRenderState() {
+        return new CustomFallingBlockRenderState();
+    }
+
+    @Override
+    public void extractRenderState(Entity entity, EntityRenderState renderState, float partialTicks) {
+        super.extractRenderState(entity, renderState, partialTicks);
+
+        if (!(entity instanceof CustomFallingBlockEntity customEntity) || !(renderState instanceof CustomFallingBlockRenderState state)) {
+            return;
+        }
+
+        BlockState blockState = customEntity.getBlockState();
+        BlockPos pos = BlockPos.containing(customEntity.getX(), customEntity.getBoundingBox().maxY, customEntity.getZ());
+        Level level = customEntity.level();
+
+        // Set up MovingBlockRenderState for basic block rendering
+        state.movingBlockRenderState.randomSeedPos = customEntity.getStartPos();
+        state.movingBlockRenderState.blockPos = pos;
+        state.movingBlockRenderState.blockState = blockState;
+        state.movingBlockRenderState.biome = level.getBiome(pos);
+        state.movingBlockRenderState.level = level;
+
+        // Check if block has a block entity
+        state.hasBlockEntity = blockState.hasBlockEntity();
+        if (state.hasBlockEntity) {
+            state.blockEntityType = findBlockEntityType(blockState);
+            state.blockData = customEntity.getBlockData();
+
+            // Try to extract block entity render state
+            if (state.blockEntityType != null) {
+                BlockEntity blockEntity = createBlockEntityInstance(blockState, state.blockEntityType, pos);
+                if (blockEntity != null) {
+                    blockEntity.setLevel(level);
+                    CompoundTag blockData = state.blockData;
+                    if (blockData != null && !blockData.isEmpty()) {
+                        try {
+                            blockEntity.loadCustomOnly(TagValueInput.create(
+                                    ProblemReporter.DISCARDING,
+                                    level.registryAccess(),
+                                    blockData
+                            ));
+                        } catch (Exception e) {
+                            // Ignore loading errors
+                        }
+                    }
+
+                    // Get the block entity renderer and extract its state
+                    BlockEntityRenderDispatcher dispatcher = Minecraft.getInstance().getBlockEntityRenderDispatcher();
+                    state.blockEntityRenderState = dispatcher.tryExtractRenderState(blockEntity, partialTicks, null);
+                }
+            }
+        }
+    }
+
+    @Override
+    public void submit(EntityRenderState renderState, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, CameraRenderState camera) {
+        if (!(renderState instanceof CustomFallingBlockRenderState state)) {
+            return;
+        }
+
+        BlockState blockState = state.movingBlockRenderState.blockState;
 
         if (blockState.getRenderShape() == RenderShape.INVISIBLE) {
             return;
         }
 
-        Level level = entity.level();
-        BlockPos renderPos = BlockPos.containing(entity.getX(), entity.getY(), entity.getZ());
-
         poseStack.pushPose();
         try {
             poseStack.translate(-0.5D, 0.0D, -0.5D);
 
-            if (blockState.hasBlockEntity()) {
-                renderBlockWithEntity(entity, blockState, level, renderPos, poseStack, buffer, packedLight);
-            } else {
-                renderBlockModel(blockState, level, renderPos, poseStack, buffer, packedLight, false);
+            // Render the block model
+            if (blockState.getRenderShape() == RenderShape.MODEL) {
+                submitNodeCollector.submitMovingBlock(poseStack, state.movingBlockRenderState);
+            }
+
+            // Render block entity if present
+            if (state.hasBlockEntity && state.blockEntityRenderState != null) {
+                poseStack.pushPose();
+                try {
+                    poseStack.translate(0.5D, 0.5D, 0.5D);
+
+                    BlockEntityRenderDispatcher dispatcher = Minecraft.getInstance().getBlockEntityRenderDispatcher();
+                    dispatcher.submit(state.blockEntityRenderState, poseStack, submitNodeCollector, camera);
+                } catch (Exception e) {
+                    // Ignore rendering errors
+                } finally {
+                    poseStack.popPose();
+                }
             }
         } finally {
             poseStack.popPose();
         }
 
-        super.render(entity, entityYaw, partialTicks, poseStack, buffer, packedLight);
-    }
-
-    private void renderBlockWithEntity(CustomFallingBlockEntity entity, BlockState blockState, Level level, BlockPos renderPos, PoseStack poseStack, MultiBufferSource buffer, int packedLight) {
-        BlockEntityType<?> blockEntityType = findBlockEntityType(blockState);
-
-        if (blockEntityType == null) {
-            renderBlockModel(blockState, level, renderPos, poseStack, buffer, packedLight, true);
-            return;
-        }
-
-        BlockEntity blockEntity = createBlockEntityInstance(blockState, blockEntityType, renderPos);
-        if (blockEntity == null) {
-            renderBlockModel(blockState, level, renderPos, poseStack, buffer, packedLight, true);
-            return;
-        }
-
-        blockEntity.setLevel(level);
-        if (entity.getBlockData() != null && !entity.getBlockData().isEmpty()) {
-            try {
-                blockEntity.loadWithComponents(entity.getBlockData(), level.registryAccess());
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-
-        if (blockState.getRenderShape() == RenderShape.MODEL) {
-            renderBlockModel(blockState, level, renderPos, poseStack, buffer, packedLight, true);
-        }
-
-        BlockEntityRenderer<BlockEntity> renderer = getBlockEntityRenderer(blockEntity);
-        if (renderer != null) {
-            poseStack.pushPose();
-            try {
-                poseStack.translate(0.5D, 0.5D, 0.5D);
-
-                renderer.render(blockEntity, partialTicks, poseStack, buffer, packedLight, OverlayTexture.NO_OVERLAY);
-            } catch (Exception e) {
-                e.printStackTrace();
-            } finally {
-                poseStack.popPose();
-            }
-        }
+        super.submit(renderState, poseStack, submitNodeCollector, camera);
     }
 
     private BlockEntityType<?> findBlockEntityType(BlockState blockState) {
@@ -111,7 +146,6 @@ public class CustomFallingBlockRenderer extends EntityRenderer<CustomFallingBloc
                     return type;
                 }
             } catch (Exception ignored) {
-
             }
         }
         return null;
@@ -121,29 +155,7 @@ public class CustomFallingBlockRenderer extends EntityRenderer<CustomFallingBloc
         try {
             return blockEntityType.create(pos, blockState);
         } catch (Exception e) {
-            e.printStackTrace();
             return null;
         }
-    }
-
-    private void renderBlockModel(BlockState blockState, Level level, BlockPos renderPos, PoseStack poseStack, MultiBufferSource buffer, int packedLight, boolean useTranslucentMovingBlock) {
-        BakedModel model = this.dispatcher.getBlockModel(blockState);
-        RandomSource randomSource = RandomSource.create();
-        RenderType renderType = useTranslucentMovingBlock ? RenderType.translucentMovingBlock() : RenderType.cutout();
-        this.dispatcher.getModelRenderer().tesselateBlock(level, model, blockState, renderPos, poseStack, buffer.getBuffer(renderType), false, randomSource, blockState.getSeed(renderPos), OverlayTexture.NO_OVERLAY);
-    }
-
-    private <T extends BlockEntity> BlockEntityRenderer<T> getBlockEntityRenderer(T blockEntity) {
-        try {
-            return Minecraft.getInstance().getBlockEntityRenderDispatcher().getRenderer(blockEntity);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
-    @Override
-    public @NotNull ResourceLocation getTextureLocation(@NotNull CustomFallingBlockEntity entity) {
-        return InventoryMenu.BLOCK_ATLAS;
     }
 }

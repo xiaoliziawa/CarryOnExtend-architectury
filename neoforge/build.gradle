@@ -37,7 +37,7 @@ dependencies {
     modImplementation "dev.architectury:architectury-neoforge:$rootProject.architectury_api_version"
 
     // CarryOn mod dependency (NeoForge)
-    modImplementation "curse.maven:carry-on-274259:7393892"
+    modImplementation "curse.maven:carry-on-274259:7386188"
 
     //游戏内账号切换Mod，用于辅助调试
 //    modImplementation "curse.maven:in-game-account-switcher-232676:5474316"

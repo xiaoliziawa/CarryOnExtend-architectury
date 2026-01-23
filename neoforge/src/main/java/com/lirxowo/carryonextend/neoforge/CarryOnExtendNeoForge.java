@@ -27,7 +27,7 @@ public final class CarryOnExtendNeoForge {
 
         NeoForge.EVENT_BUS.addListener(this::onPlayerDeath);
 
-        if (FMLEnvironment.dist == Dist.CLIENT) {
+        if (FMLEnvironment.getDist() == Dist.CLIENT) {
             modEventBus.addListener(this::onClientSetup);
             modEventBus.addListener(this::onRegisterEntityRenderers);
         }

@@ -46,8 +46,9 @@ public class BlockThrowHandler {
             ScriptEffects effects = carry.getActiveScript().get().scriptEffects();
             String cmd = effects.commandPlace();
             if (!cmd.isEmpty())
-                player.getServer().getCommands().performPrefixedCommand(player.getServer().createCommandSourceStack(),
-                        "/execute as " + player.getGameProfile().getName() + " run " + cmd);
+                player.level().getServer().getCommands().performPrefixedCommand(
+                        player.level().getServer().createCommandSourceStack(),
+                        "/execute as " + player.getGameProfile().name() + " run " + cmd);
         }
 
         float powerMult = 1.0f + (powerFactor * (MAX_POWER_MULTIPLIER - 1.0f));
@@ -78,7 +79,7 @@ public class BlockThrowHandler {
         carry.clear();
         CarryOnDataManager.setCarryData(player, carry);
         if (!player.isCreative() || Constants.COMMON_CONFIG.settings.slownessInCreative)
-            player.removeEffect(MobEffects.MOVEMENT_SLOWDOWN);
+            player.removeEffect(MobEffects.SLOWNESS);
         player.swing(InteractionHand.MAIN_HAND, true);
     }
 }

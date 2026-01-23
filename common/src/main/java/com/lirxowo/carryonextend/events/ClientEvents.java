@@ -5,19 +5,22 @@ import com.lirxowo.carryonextend.network.NetworkHandler;
 import com.lirxowo.carryonextend.network.ThrowPowerPacket;
 import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.input.KeyEvent;
 import net.minecraft.world.entity.player.Player;
 import tschipp.carryon.common.carry.CarryOnData;
 import tschipp.carryon.common.carry.CarryOnDataManager;
 
 public class ClientEvents {
 
-    public static boolean onKeyInput(int key, int action) {
+    public static boolean onKeyInput(int key, int scancode, int action) {
         Minecraft mc = Minecraft.getInstance();
         Player player = mc.player;
 
         if (player == null) return false;
 
-        if (mc.options.keyDrop.matches(key, -1) && action == InputConstants.PRESS) {
+        KeyEvent keyEvent = new KeyEvent(key, scancode, 0);
+
+        if (mc.options.keyDrop.matches(keyEvent) && action == InputConstants.PRESS) {
             CarryOnData carry = CarryOnDataManager.getCarryData(player);
 
             if (carry.isCarrying(CarryOnData.CarryType.ENTITY) || carry.isCarrying(CarryOnData.CarryType.PLAYER) ||

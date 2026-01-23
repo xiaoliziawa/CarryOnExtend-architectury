@@ -2,13 +2,14 @@ package com.lirxowo.carryonextend.trigger;
 
 import com.mojang.serialization.Codec;
 import net.minecraft.advancements.Criterion;
-import net.minecraft.advancements.critereon.ContextAwarePredicate;
-import net.minecraft.advancements.critereon.SimpleCriterionTrigger;
+import net.minecraft.advancements.criterion.ContextAwarePredicate;
+import net.minecraft.advancements.criterion.SimpleCriterionTrigger;
 import net.minecraft.server.level.ServerPlayer;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 
-public class TntThrowTrigger extends SimpleCriterionTrigger<TntThrowTrigger.TriggerInstance> {
+public class TntThrowTrigger extends SimpleCriterionTrigger<TntThrowTrigger.@NotNull TriggerInstance> {
 
     @Override
     public Codec<TriggerInstance> codec() {

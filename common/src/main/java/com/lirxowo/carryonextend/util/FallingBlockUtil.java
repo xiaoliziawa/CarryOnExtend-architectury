@@ -5,10 +5,12 @@ import com.lirxowo.carryonextend.registry.EntityRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.EntityType;
@@ -19,6 +21,10 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.TagValueInput;
+import net.minecraft.world.level.storage.TagValueOutput;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.Vec3;
 import tschipp.carryon.Constants;
 import tschipp.carryon.common.carry.CarryOnData;
@@ -27,16 +33,22 @@ import tschipp.carryon.common.carry.CarryOnDataManager;
 
 public class FallingBlockUtil {
 
+    private static final ProblemReporter problemReporter = new ProblemReporter.ScopedCollector(Constants.LOG);
+
     public static boolean isCustomFallingBlock(CompoundTag entityNBT) {
         if (entityNBT == null || !entityNBT.contains("id")) {
             return false;
         }
 
-        String entityId = entityNBT.getString("id");
-        ResourceLocation entityTypeId = ResourceLocation.parse(entityId);
+        String entityId = entityNBT.getStringOr("id", "");
+        if (entityId.isEmpty()) {
+            return false;
+        }
+
+        Identifier entityTypeId = Identifier.parse(entityId);
 
         EntityType<?> customFallingBlockType = EntityRegistry.CUSTOM_FALLING_BLOCK.get();
-        ResourceLocation customTypeId = BuiltInRegistries.ENTITY_TYPE.getKey(customFallingBlockType);
+        Identifier customTypeId = BuiltInRegistries.ENTITY_TYPE.getKey(customFallingBlockType);
 
         return customTypeId != null && customTypeId.equals(entityTypeId);
     }
@@ -50,8 +62,8 @@ public class FallingBlockUtil {
 
         if (entityNBT.contains("BlockState")) {
             try {
-                CompoundTag blockStateTag = entityNBT.getCompound("BlockState");
-                int blockStateId = blockStateTag.getInt("id");
+                CompoundTag blockStateTag = entityNBT.getCompoundOrEmpty("BlockState");
+                int blockStateId = blockStateTag.getIntOr("id", 0);
                 if (blockStateId > 0) {
                     blockState = Block.stateById(blockStateId);
                     if (blockState != null && blockState.getBlock() != Blocks.AIR) {
@@ -59,39 +71,40 @@ public class FallingBlockUtil {
                     }
                 }
             } catch (Exception e) {
+                // Ignore
             }
         }
 
         if (entityNBT.contains("BlockId")) {
             try {
-                String blockIdStr = entityNBT.getString("BlockId");
-                ResourceLocation blockId = ResourceLocation.parse(blockIdStr);
-                Block block = BuiltInRegistries.BLOCK.get(blockId);
-                if (block != null && block != Blocks.AIR) {
-                    return block.defaultBlockState();
+                String blockIdStr = entityNBT.getStringOr("BlockId", "");
+                if (!blockIdStr.isEmpty()) {
+                    Identifier blockId = Identifier.parse(blockIdStr);
+                    Block block = BuiltInRegistries.BLOCK.getValue(blockId);
+                    if (block != null && block != Blocks.AIR) {
+                        return block.defaultBlockState();
+                    }
                 }
             } catch (Exception e) {
+                // Ignore
             }
-        }
-
-        CompoundTag blockData = null;
-        if (entityNBT.contains("CustomBlockData")) {
-            blockData = entityNBT.getCompound("CustomBlockData");
         }
 
         if (entityNBT.contains("EntityData")) {
             try {
-                CompoundTag entityData = entityNBT.getCompound("EntityData");
+                CompoundTag entityData = entityNBT.getCompoundOrEmpty("EntityData");
                 if (entityData.contains("BLOCK_ID")) {
-                    String blockId = entityData.getString("BLOCK_ID");
-                    Block block = BuiltInRegistries.BLOCK.get(ResourceLocation.parse(blockId));
-                    if (block != null && block != Blocks.AIR) {
-                        blockState = block.defaultBlockState();
+                    String blockId = entityData.getStringOr("BLOCK_ID", "");
+                    if (!blockId.isEmpty()) {
+                        Block block = BuiltInRegistries.BLOCK.getValue(Identifier.parse(blockId));
+                        if (block != null && block != Blocks.AIR) {
+                            blockState = block.defaultBlockState();
+                        }
                     }
                 }
 
                 if (blockState == null && entityData.contains("BLOCK_STATE_META")) {
-                    int stateId = entityData.getInt("BLOCK_STATE_META");
+                    int stateId = entityData.getIntOr("BLOCK_STATE_META", 0);
                     if (stateId != 0) {
                         blockState = Block.stateById(stateId);
                         if (blockState != null && blockState.getBlock() != Blocks.AIR) {
@@ -104,6 +117,7 @@ public class FallingBlockUtil {
                     return blockState;
                 }
             } catch (Exception e) {
+                // Ignore
             }
         }
 
@@ -116,37 +130,35 @@ public class FallingBlockUtil {
         }
 
         if (entityNBT.contains("CustomBlockData")) {
-            return entityNBT.getCompound("CustomBlockData");
+            return entityNBT.getCompoundOrEmpty("CustomBlockData");
         }
 
         return null;
     }
 
-    public static void saveBlockDataToNBT(CompoundTag tag, BlockState blockState,
+    public static void saveBlockDataToNBT(ValueOutput output, BlockState blockState,
                                           CompoundTag blockData, String blockIdValue,
                                           int blockStateMetaValue) {
         if (blockData != null) {
-            tag.put("CustomBlockData", blockData);
+            output.store("CustomBlockData", CompoundTag.CODEC, blockData);
         }
 
-        tag.putString("CustomEntityType", "falling_block");
+        output.putString("CustomEntityType", "falling_block");
 
         if (blockState != null) {
             int stateId = Block.getId(blockState);
-            CompoundTag blockStateTag = new CompoundTag();
-            blockStateTag.putInt("id", stateId);
-            tag.put("BlockState", blockStateTag);
+            ValueOutput blockStateOutput = output.child("BlockState");
+            blockStateOutput.putInt("id", stateId);
 
-            ResourceLocation blockId = BuiltInRegistries.BLOCK.getKey(blockState.getBlock());
+            Identifier blockId = BuiltInRegistries.BLOCK.getKey(blockState.getBlock());
             if (blockId != null) {
-                tag.putString("BlockId", blockId.toString());
+                output.putString("BlockId", blockId.toString());
             }
         }
 
-        CompoundTag entityData = new CompoundTag();
-        entityData.putString("BLOCK_ID", blockIdValue);
-        entityData.putInt("BLOCK_STATE_META", blockStateMetaValue);
-        tag.put("EntityData", entityData);
+        ValueOutput entityDataOutput = output.child("EntityData");
+        entityDataOutput.putString("BLOCK_ID", blockIdValue);
+        entityDataOutput.putInt("BLOCK_STATE_META", blockStateMetaValue);
     }
 
     public static boolean handleFallingBlockThrow(ServerPlayer player, CarryOnData carry,
@@ -179,7 +191,7 @@ public class FallingBlockUtil {
         carry.clear();
         CarryOnDataManager.setCarryData(player, carry);
         if (!player.isCreative() || Constants.COMMON_CONFIG.settings.slownessInCreative)
-            player.removeEffect(MobEffects.MOVEMENT_SLOWDOWN);
+            player.removeEffect(MobEffects.SLOWNESS);
         player.swing(InteractionHand.MAIN_HAND, true);
 
         return true;
@@ -194,8 +206,7 @@ public class FallingBlockUtil {
             if (hasValidBlockEntity(level, pos, blockData)) {
                 BlockEntity blockEntity = level.getBlockEntity(pos);
                 if (blockEntity != null) {
-
-                    blockEntity.loadWithComponents(blockData, level.registryAccess());
+                    loadBlockEntityData(blockEntity, blockData, level);
                     level.sendBlockUpdated(pos, blockState, blockState, 3);
                     blockEntity.setChanged();
                 }
@@ -205,7 +216,39 @@ public class FallingBlockUtil {
         return false;
     }
 
-    public static ItemStack createItemStackWithData(BlockState blockState, CompoundTag blockData, BlockPos pos) {
+    public static void loadBlockEntityData(BlockEntity blockEntity, CompoundTag blockData, Level level) {
+        if (blockEntity == null || blockData == null || blockData.isEmpty()) {
+            return;
+        }
+
+        try (ProblemReporter.ScopedCollector reporter = new ProblemReporter.ScopedCollector(blockEntity.problemPath(), Constants.LOG)) {
+            ValueInput input = TagValueInput.create(reporter, level.registryAccess(), blockData);
+            blockEntity.loadWithComponents(input);
+        } catch (Exception e) {
+            Constants.LOG.error("Failed to load block entity data", e);
+        }
+    }
+
+    public static void saveBlockEntityToItem(BlockEntity blockEntity, ItemStack itemStack, Level level) {
+        if (blockEntity == null || itemStack == null || level == null) {
+            return;
+        }
+
+        try (ProblemReporter.ScopedCollector reporter = new ProblemReporter.ScopedCollector(blockEntity.problemPath(), Constants.LOG)) {
+            TagValueOutput output = TagValueOutput.createWithContext(reporter, level.registryAccess());
+            blockEntity.saveWithoutMetadata(output);
+            CompoundTag nbt = output.buildResult();
+
+            // Apply the NBT to the item using the component system
+            if (!nbt.isEmpty()) {
+                itemStack.applyComponents(blockEntity.collectComponents());
+            }
+        } catch (Exception e) {
+            Constants.LOG.error("Failed to save block entity to item", e);
+        }
+    }
+
+    public static ItemStack createItemStackWithData(BlockState blockState, CompoundTag blockData, BlockPos pos, Level level) {
         ItemStack itemStack = new ItemStack(blockState.getBlock());
 
         if (blockData == null || blockData.isEmpty() ||
@@ -216,11 +259,10 @@ public class FallingBlockUtil {
         BlockEntity tempEntity = entityBlock.newBlockEntity(pos, blockState);
         if (tempEntity != null) {
             try {
-                tempEntity.loadWithComponents(blockData, tempEntity.getLevel() != null ?
-                    tempEntity.getLevel().registryAccess() : null);
-                tempEntity.saveToItem(itemStack, tempEntity.getLevel() != null ?
-                    tempEntity.getLevel().registryAccess() : null);
+                loadBlockEntityData(tempEntity, blockData, level);
+                saveBlockEntityToItem(tempEntity, itemStack, level);
             } catch (Exception e) {
+                Constants.LOG.error("Failed to create item stack with data", e);
             }
         }
 
