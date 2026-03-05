@@ -5,7 +5,7 @@ import com.lirxowo.carryonextend.registry.EntityRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
@@ -45,10 +45,10 @@ public class FallingBlockUtil {
             return false;
         }
 
-        Identifier entityTypeId = Identifier.parse(entityId);
+        ResourceLocation entityTypeId = ResourceLocation.parse(entityId);
 
         EntityType<?> customFallingBlockType = EntityRegistry.CUSTOM_FALLING_BLOCK.get();
-        Identifier customTypeId = BuiltInRegistries.ENTITY_TYPE.getKey(customFallingBlockType);
+        ResourceLocation customTypeId = BuiltInRegistries.ENTITY_TYPE.getKey(customFallingBlockType);
 
         return customTypeId != null && customTypeId.equals(entityTypeId);
     }
@@ -79,7 +79,7 @@ public class FallingBlockUtil {
             try {
                 String blockIdStr = entityNBT.getStringOr("BlockId", "");
                 if (!blockIdStr.isEmpty()) {
-                    Identifier blockId = Identifier.parse(blockIdStr);
+                    ResourceLocation blockId = ResourceLocation.parse(blockIdStr);
                     Block block = BuiltInRegistries.BLOCK.getValue(blockId);
                     if (block != null && block != Blocks.AIR) {
                         return block.defaultBlockState();
@@ -96,7 +96,7 @@ public class FallingBlockUtil {
                 if (entityData.contains("BLOCK_ID")) {
                     String blockId = entityData.getStringOr("BLOCK_ID", "");
                     if (!blockId.isEmpty()) {
-                        Block block = BuiltInRegistries.BLOCK.getValue(Identifier.parse(blockId));
+                        Block block = BuiltInRegistries.BLOCK.getValue(ResourceLocation.parse(blockId));
                         if (block != null && block != Blocks.AIR) {
                             blockState = block.defaultBlockState();
                         }
@@ -150,7 +150,7 @@ public class FallingBlockUtil {
             ValueOutput blockStateOutput = output.child("BlockState");
             blockStateOutput.putInt("id", stateId);
 
-            Identifier blockId = BuiltInRegistries.BLOCK.getKey(blockState.getBlock());
+            ResourceLocation blockId = BuiltInRegistries.BLOCK.getKey(blockState.getBlock());
             if (blockId != null) {
                 output.putString("BlockId", blockId.toString());
             }

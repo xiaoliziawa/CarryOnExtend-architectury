@@ -5,7 +5,7 @@ import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
 import net.minecraft.client.renderer.entity.state.EntityRenderState;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.entity.BlockEntityType;
-import org.jspecify.annotations.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 public class CustomFallingBlockRenderState extends EntityRenderState {
     public MovingBlockRenderState movingBlockRenderState = new MovingBlockRenderState();
