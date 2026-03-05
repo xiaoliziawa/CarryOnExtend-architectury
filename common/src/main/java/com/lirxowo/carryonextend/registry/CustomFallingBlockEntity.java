@@ -7,13 +7,13 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.item.FallingBlockEntity;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.gamerules.GameRules;
+import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -84,7 +84,7 @@ public class CustomFallingBlockEntity extends FallingBlockEntity {
 
         this.blockState = state;
 
-        Identifier blockId = BuiltInRegistries.BLOCK.getKey(state.getBlock());
+        ResourceLocation blockId = BuiltInRegistries.BLOCK.getKey(state.getBlock());
         if (blockId != null) {
             this.entityData.set(BLOCK_ID, blockId.toString());
         }
@@ -107,7 +107,7 @@ public class CustomFallingBlockEntity extends FallingBlockEntity {
                         return;
                     }
 
-                    Identifier blockId = Identifier.parse(blockIdStr);
+                    ResourceLocation blockId = ResourceLocation.parse(blockIdStr);
                     Block block = BuiltInRegistries.BLOCK.getValue(blockId);
                     if (block != null && block != Blocks.AIR) {
                         this.blockState = block.defaultBlockState();
@@ -163,7 +163,7 @@ public class CustomFallingBlockEntity extends FallingBlockEntity {
                     this.blockState = Block.stateById(stateId);
                     this.needsStateUpdate = false;
 
-                    Identifier blockId = BuiltInRegistries.BLOCK.getKey(this.blockState.getBlock());
+                    ResourceLocation blockId = BuiltInRegistries.BLOCK.getKey(this.blockState.getBlock());
                     if (blockId != null) {
                         this.entityData.set(BLOCK_ID, blockId.toString());
                     }
@@ -176,7 +176,7 @@ public class CustomFallingBlockEntity extends FallingBlockEntity {
         if ((this.blockState == null || this.blockState.getBlock() == Blocks.STONE) && input.getString("BlockId").isPresent()) {
             try {
                 String blockIdStr = input.getStringOr("BlockId", "");
-                Identifier blockId = Identifier.parse(blockIdStr);
+                ResourceLocation blockId = ResourceLocation.parse(blockIdStr);
                 Block block = BuiltInRegistries.BLOCK.getValue(blockId);
                 if (block != null && block != Blocks.AIR) {
                     this.blockState = block.defaultBlockState();
@@ -200,7 +200,7 @@ public class CustomFallingBlockEntity extends FallingBlockEntity {
                     if (stateId > 0) {
                         this.blockState = Block.stateById(stateId);
                     } else {
-                        Identifier blockId = Identifier.parse(blockIdStr);
+                        ResourceLocation blockId = ResourceLocation.parse(blockIdStr);
                         Block block = BuiltInRegistries.BLOCK.getValue(blockId);
                         if (block != null && block != Blocks.AIR) {
                             this.blockState = block.defaultBlockState();
@@ -279,7 +279,7 @@ public class CustomFallingBlockEntity extends FallingBlockEntity {
     private void dropAsItem() {
         Level level = this.level();
         if (level instanceof ServerLevel serverLevel) {
-            if (serverLevel.getGameRules().get(GameRules.ENTITY_DROPS)) {
+            if (serverLevel.getGameRules().createTag().get(GameRules.RULE_DOENTITYDROPS.getId())!=null) {
                 ItemStack itemStack = createItemStackWithData();
                 this.spawnAtLocation(serverLevel, itemStack);
             }
