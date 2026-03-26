@@ -10,6 +10,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -19,6 +20,7 @@ import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
+import tschipp.carryon.Constants;
 import tschipp.carryon.common.carry.CarryOnData;
 import tschipp.carryon.common.carry.CarryOnDataManager;
 
@@ -176,6 +178,8 @@ public class FallingBlockUtil {
 
         carry.clear();
         CarryOnDataManager.setCarryData(player, carry);
+        if (!player.isCreative() || Constants.COMMON_CONFIG.settings.slownessInCreative)
+            player.removeEffect(MobEffects.MOVEMENT_SLOWDOWN);
         player.swing(InteractionHand.MAIN_HAND, true);
 
         return true;

@@ -3,6 +3,7 @@
   "package": "com.lirxowo.carryonextend.fabric.mixin",
   "compatibilityLevel": "JAVA_21",
   "minVersion": "0.8",
+  "refmap": "carryonextend-fabric-refmap.json",
   "client": [
     "MouseHandlerMixin"
   ],
