@@ -1,5 +1,6 @@
 package com.lirxowo.carryonextend;
 
+import com.lirxowo.carryonextend.handler.EntityThrowHandler;
 import com.lirxowo.carryonextend.network.NetworkHandler;
 import com.lirxowo.carryonextend.registry.EntityRegistry;
 import com.lirxowo.carryonextend.trigger.TriggerRegistry;
@@ -14,5 +15,6 @@ public final class CarryOnExtend {
         EntityRegistry.init();
         TriggerRegistry.init();
         NetworkHandler.init();
+        EntityThrowHandler.init();
     }
 }

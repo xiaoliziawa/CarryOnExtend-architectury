@@ -2,7 +2,10 @@ package com.lirxowo.carryonextend.handler;
 
 import com.lirxowo.carryonextend.trigger.TriggerRegistry;
 import com.lirxowo.carryonextend.util.FallingBlockUtil;
+import dev.architectury.event.events.common.LifecycleEvent;
+import dev.architectury.event.events.common.TickEvent;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
@@ -23,11 +26,11 @@ import tschipp.carryon.common.scripting.CarryOnScript.ScriptEffects;
 import tschipp.carryon.networking.clientbound.ClientboundStartRidingPacket;
 import tschipp.carryon.platform.Services;
 
+import java.util.ArrayDeque;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 public class EntityThrowHandler {
 
@@ -37,6 +40,13 @@ public class EntityThrowHandler {
 
     private static final float PLAYER_THROW_POWER_BONUS = 1.2f;
     private static final float PLAYER_THROW_UPWARD_BONUS = 0.6f;
+
+    private static final Map<MinecraftServer, ArrayDeque<PendingPlayerThrow>> PENDING_PLAYER_THROWS = new HashMap<>();
+
+    public static void init() {
+        TickEvent.SERVER_POST.register(EntityThrowHandler::runPendingPlayerThrows);
+        LifecycleEvent.SERVER_STOPPING.register(PENDING_PLAYER_THROWS::remove);
+    }
 
     public static void throwCarriedEntity(ServerPlayer player) {
         throwCarriedEntityWithPower(player, 1.0f);
@@ -87,9 +97,7 @@ public class EntityThrowHandler {
 
                 TriggerRegistry.PLAYER_THROW.get().trigger(player);
 
-                //TickTask 不知道为什么并不生效，故用此替代
-                ScheduledExecutorService service = Executors.newScheduledThreadPool(1);
-                service.schedule(() -> {
+                schedulePlayerThrow(player.getServer(), () -> {
                     if (passenger instanceof ServerPlayer thrownPlayer) {
                         thrownPlayer.setDeltaMovement(velocity);
                         thrownPlayer.hurtMarked = true;
@@ -104,7 +112,7 @@ public class EntityThrowHandler {
                     level.playSound(null, player.getX(), player.getY(), player.getZ(),
                             SoundEvents.PLAYER_ATTACK_SWEEP, SoundSource.PLAYERS, 0.8F, pitch);
                     player.swing(InteractionHand.MAIN_HAND, true);
-                }, 51, TimeUnit.MILLISECONDS);
+                });
                 carry.clear();
                 CarryOnDataManager.setCarryData(player, carry);
                 if (!player.isCreative() || Constants.COMMON_CONFIG.settings.slownessInCreative)
@@ -214,5 +222,33 @@ public class EntityThrowHandler {
         if (!player.isCreative() || Constants.COMMON_CONFIG.settings.slownessInCreative)
             player.removeEffect(MobEffects.MOVEMENT_SLOWDOWN);
         player.swing(InteractionHand.MAIN_HAND, true);
+    }
+
+    private static void schedulePlayerThrow(MinecraftServer server, Runnable action) {
+        ArrayDeque<PendingPlayerThrow> pendingThrows = PENDING_PLAYER_THROWS.computeIfAbsent(
+                server,
+                ignored -> new ArrayDeque<>()
+        );
+        pendingThrows.addLast(new PendingPlayerThrow(server.getTickCount() + 1, action));
+    }
+
+    private static void runPendingPlayerThrows(MinecraftServer server) {
+        ArrayDeque<PendingPlayerThrow> pendingThrows = PENDING_PLAYER_THROWS.get(server);
+        if (pendingThrows == null) {
+            return;
+        }
+
+        PendingPlayerThrow pendingThrow = pendingThrows.peekFirst();
+        while (pendingThrow != null && pendingThrow.executeAtTick() <= server.getTickCount()) {
+            pendingThrows.removeFirst().action().run();
+            pendingThrow = pendingThrows.peekFirst();
+        }
+
+        if (pendingThrows.isEmpty()) {
+            PENDING_PLAYER_THROWS.remove(server);
+        }
+    }
+
+    private record PendingPlayerThrow(int executeAtTick, Runnable action) {
     }
 }

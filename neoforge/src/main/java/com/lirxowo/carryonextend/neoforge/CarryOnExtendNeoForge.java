@@ -23,7 +23,6 @@ public final class CarryOnExtendNeoForge {
         CarryOnExtend.init();
 
         NeoForgeNetworkHandler.registerServerReceivers();
-//        NeoForgeNetworkHandler.registerClientReceivers();
 
         NeoForge.EVENT_BUS.addListener(this::onPlayerDeath);
 
