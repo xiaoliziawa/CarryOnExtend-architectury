@@ -12,7 +12,7 @@ import net.minecraft.data.PackOutput;
 import net.minecraft.data.advancements.AdvancementProvider;
 import net.minecraft.data.advancements.AdvancementSubProvider;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Items;
 
 import java.util.List;
@@ -33,7 +33,7 @@ public class ModAdvancementProvider extends AdvancementProvider {
                     .display(Items.TNT,
                             Component.translatable("advancement.carryonextend.tnt_thrower.title"),
                             Component.translatable("advancement.carryonextend.tnt_thrower.description"),
-                            ResourceLocation.withDefaultNamespace("textures/gui/advancements/backgrounds/adventure.png"),
+                            Identifier.withDefaultNamespace("textures/gui/advancements/backgrounds/adventure.png"),
                             AdvancementType.TASK,
                             true, true, false)
                     .addCriterion("throw_tnt", TntThrowTrigger.TriggerInstance.tntThrow())

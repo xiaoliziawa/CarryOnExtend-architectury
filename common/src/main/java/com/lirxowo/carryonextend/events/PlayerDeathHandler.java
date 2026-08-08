@@ -10,7 +10,7 @@ public class PlayerDeathHandler {
 
     public static void onPlayerDeath(ServerPlayer player, DamageSource damageSource) {
         PrimedTnt tnt = getTntFromDamageSource(damageSource);
-        if (tnt != null && tnt.getTags().contains("thrownBy:" + player.getUUID())) {
+        if (tnt != null && tnt.entityTags().contains("thrownBy:" + player.getUUID())) {
             TriggerRegistry.SELF_DESTRUCTION.get().trigger(player);
         }
     }

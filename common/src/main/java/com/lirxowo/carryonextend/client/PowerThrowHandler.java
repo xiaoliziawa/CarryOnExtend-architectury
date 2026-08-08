@@ -46,7 +46,7 @@ public class PowerThrowHandler {
         Component message = Component.translatable("message." + CarryOnExtend.MOD_ID + ".power_level",
                                                 powerLevel, MAX_POWER_STEPS, (int)percentage);
 
-        player.displayClientMessage(message, true);
+        player.sendOverlayMessage(message);
     }
 
     private static void playPowerChangeSound() {

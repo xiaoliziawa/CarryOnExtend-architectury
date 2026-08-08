@@ -26,10 +26,10 @@
     "carryonextend.fabric.mixins.json"
   ],
   "depends": {
-    "fabricloader": ">=0.18.0",
-    "minecraft": "~1.21.1",
-    "java": ">=21",
-    "architectury": ">=13.0.8",
+    "fabricloader": ">=0.19.3",
+    "minecraft": "~26.1.2",
+    "java": ">=25",
+    "architectury": ">=20.0.12",
     "fabric-api": "*",
     "carryon": "*"
   }
