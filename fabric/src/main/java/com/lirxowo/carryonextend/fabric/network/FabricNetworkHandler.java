@@ -83,7 +83,7 @@ public class FabricNetworkHandler {
 
         // 设置速度
         player.setDeltaMovement(packet.x(), packet.y(), packet.z());
-        player.hurtMarked = true;
+        player.syncVelocity = true;
         player.setOnGround(false);
         player.fallDistance = 0.0f;
     }

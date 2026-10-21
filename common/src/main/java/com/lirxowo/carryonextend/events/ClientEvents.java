@@ -12,13 +12,11 @@ import tschipp.carryon.common.carry.CarryOnDataManager;
 
 public class ClientEvents {
 
-    public static boolean onKeyInput(int key, int scancode, int action) {
+    public static boolean onKeyInput(KeyEvent keyEvent, int action) {
         Minecraft mc = Minecraft.getInstance();
         Player player = mc.player;
 
         if (player == null) return false;
-
-        KeyEvent keyEvent = new KeyEvent(key, scancode, 0);
 
         if (mc.options.keyDrop.matches(keyEvent) && action == InputConstants.PRESS) {
             CarryOnData carry = CarryOnDataManager.getCarryData(player);

@@ -6,7 +6,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.Identifier;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -15,6 +14,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.SwingAnimation;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -192,7 +192,7 @@ public class FallingBlockUtil {
         CarryOnDataManager.setCarryData(player, carry);
         if (!player.isCreative() || Constants.COMMON_CONFIG.settings.slownessInCreative)
             player.removeEffect(MobEffects.SLOWNESS);
-        player.swing(InteractionHand.MAIN_HAND, true);
+        player.swing(InteractionHand.MAIN_HAND, SwingAnimation.DEFAULT, true);
 
         return true;
     }

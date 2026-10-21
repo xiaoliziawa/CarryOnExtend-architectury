@@ -1,65 +1,22 @@
 package com.lirxowo.carryonextend.fabric.datagen;
 
-import com.lirxowo.carryonextend.CarryOnExtend;
-import com.lirxowo.carryonextend.trigger.PlayerThrowTrigger;
-import com.lirxowo.carryonextend.trigger.SelfDestructionTrigger;
-import com.lirxowo.carryonextend.trigger.TntThrowTrigger;
-import net.minecraft.advancements.Advancement;
+import com.lirxowo.carryonextend.datagen.ModAdvancements;
+import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput;
+import net.fabricmc.fabric.api.datagen.v1.provider.FabricAdvancementProvider;
 import net.minecraft.advancements.AdvancementHolder;
-import net.minecraft.advancements.AdvancementType;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.data.PackOutput;
-import net.minecraft.data.advancements.AdvancementProvider;
-import net.minecraft.data.advancements.AdvancementSubProvider;
-import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
-import net.minecraft.world.item.Items;
 
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
-public class ModAdvancementProvider extends AdvancementProvider {
+public class ModAdvancementProvider extends FabricAdvancementProvider {
 
-    public ModAdvancementProvider(PackOutput output, CompletableFuture<HolderLookup.Provider> registries) {
-        super(output, registries, List.of(new ModAdvancements()));
+    public ModAdvancementProvider(FabricPackOutput output, CompletableFuture<HolderLookup.Provider> registries) {
+        super(output, registries);
     }
 
-    public static class ModAdvancements implements AdvancementSubProvider {
-
-        @Override
-        public void generate(HolderLookup.Provider registries, Consumer<AdvancementHolder> writer) {
-            AdvancementHolder tntThrowerAdvancement = Advancement.Builder.advancement()
-                    .display(Items.TNT,
-                            Component.translatable("advancement.carryonextend.tnt_thrower.title"),
-                            Component.translatable("advancement.carryonextend.tnt_thrower.description"),
-                            Identifier.withDefaultNamespace("textures/gui/advancements/backgrounds/adventure.png"),
-                            AdvancementType.TASK,
-                            true, true, false)
-                    .addCriterion("throw_tnt", TntThrowTrigger.TriggerInstance.tntThrow())
-                    .save(writer, CarryOnExtend.MOD_ID + ":tnt_thrower");
-
-            AdvancementHolder selfDestructionAdvancement = Advancement.Builder.advancement()
-                    .parent(tntThrowerAdvancement)
-                    .display(Items.TNT_MINECART,
-                            Component.translatable("advancement.carryonextend.self_destruction.title"),
-                            Component.translatable("advancement.carryonextend.self_destruction.description"),
-                            null,
-                            AdvancementType.CHALLENGE,
-                            true, true, true)
-                    .addCriterion("self_destruction", SelfDestructionTrigger.TriggerInstance.selfDestruction())
-                    .save(writer, CarryOnExtend.MOD_ID + ":self_destruction");
-
-            AdvancementHolder playerThrowAdvancement = Advancement.Builder.advancement()
-                    .parent(tntThrowerAdvancement)
-                    .display(Items.DIAMOND,
-                            Component.translatable("advancement.carryonextend.player_throw.title"),
-                            Component.translatable("advancement.carryonextend.player_throw.description"),
-                            null,
-                            AdvancementType.CHALLENGE,
-                            true, true, true)
-                    .addCriterion("throw_player", PlayerThrowTrigger.TriggerInstance.playerThrow())
-                    .save(writer, CarryOnExtend.MOD_ID + ":player_throw");
-        }
+    @Override
+    public void generateAdvancement(HolderLookup.Provider registries, Consumer<AdvancementHolder> writer) {
+        ModAdvancements.generate(writer);
     }
 }

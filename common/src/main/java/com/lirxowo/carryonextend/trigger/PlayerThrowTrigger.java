@@ -1,10 +1,11 @@
 package com.lirxowo.carryonextend.trigger;
 
 import com.mojang.serialization.Codec;
-import net.minecraft.advancements.Criterion;
-import net.minecraft.advancements.criterion.ContextAwarePredicate;
-import net.minecraft.advancements.criterion.SimpleCriterionTrigger;
+import net.minecraft.advancements.triggers.Criterion;
+import net.minecraft.advancements.triggers.SimpleCriterionTrigger;
+import net.minecraft.core.Holder;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
@@ -20,8 +21,8 @@ public class PlayerThrowTrigger extends SimpleCriterionTrigger<PlayerThrowTrigge
         this.trigger(player, triggerInstance -> true);
     }
 
-    public record TriggerInstance(Optional<ContextAwarePredicate> player) implements SimpleInstance {
-        public static final Codec<TriggerInstance> CODEC = ContextAwarePredicate.CODEC
+    public record TriggerInstance(Optional<Holder<LootItemCondition>> player) implements SimpleInstance {
+        public static final Codec<TriggerInstance> CODEC = LootItemCondition.CODEC
                 .optionalFieldOf("player")
                 .xmap(TriggerInstance::new, TriggerInstance::player)
                 .codec();

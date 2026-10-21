@@ -8,6 +8,7 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.item.component.SwingAnimation;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -80,6 +81,6 @@ public class BlockThrowHandler {
         CarryOnDataManager.setCarryData(player, carry);
         if (!player.isCreative() || Constants.COMMON_CONFIG.settings.slownessInCreative)
             player.removeEffect(MobEffects.SLOWNESS);
-        player.swing(InteractionHand.MAIN_HAND, true);
+        player.swing(InteractionHand.MAIN_HAND, SwingAnimation.DEFAULT, true);
     }
 }

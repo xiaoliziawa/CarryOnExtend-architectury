@@ -29,8 +29,8 @@ public class CustomFallingBlockRenderer extends EntityRenderer<CustomFallingBloc
     }
 
     @Override
-    public boolean shouldRender(CustomFallingBlockEntity entity, Frustum culler, double camX, double camY, double camZ) {
-        if (!super.shouldRender(entity, culler, camX, camY, camZ)) {
+    public boolean shouldRender(CustomFallingBlockEntity entity, Frustum culler, double camX, double camY, double camZ, float partialTicks) {
+        if (!super.shouldRender(entity, culler, camX, camY, camZ, partialTicks)) {
             return false;
         }
         return entity.getBlockState() != entity.level().getBlockState(entity.blockPosition());
@@ -76,7 +76,7 @@ public class CustomFallingBlockRenderer extends EntityRenderer<CustomFallingBloc
                 }
 
                 BlockEntityRenderDispatcher dispatcher = Minecraft.getInstance().getBlockEntityRenderDispatcher();
-                state.blockEntityRenderState = dispatcher.tryExtractRenderState(blockEntity, partialTicks, null);
+                state.blockEntityRenderState = dispatcher.tryExtractRenderState(blockEntity, partialTicks, null, false);
             }
         }
     }
@@ -94,7 +94,7 @@ public class CustomFallingBlockRenderer extends EntityRenderer<CustomFallingBloc
             poseStack.translate(-0.5D, 0.0D, -0.5D);
 
             if (blockState.getRenderShape() == RenderShape.MODEL) {
-                submitNodeCollector.submitMovingBlock(poseStack, state.movingBlockRenderState);
+                submitNodeCollector.submitMovingBlock(poseStack, state.movingBlockRenderState, state.outlineColor);
             }
 
             if (state.blockEntityRenderState != null) {

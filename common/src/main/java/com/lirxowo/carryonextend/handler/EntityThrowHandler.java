@@ -3,7 +3,9 @@ package com.lirxowo.carryonextend.handler;
 import com.lirxowo.carryonextend.trigger.TriggerRegistry;
 import com.lirxowo.carryonextend.util.FallingBlockUtil;
 import net.minecraft.core.UUIDUtil;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
@@ -16,6 +18,7 @@ import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.item.PrimedTnt;
+import net.minecraft.world.item.component.SwingAnimation;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.TagValueInput;
 import net.minecraft.world.level.storage.TagValueOutput;
@@ -97,18 +100,18 @@ public class EntityThrowHandler {
                 service.schedule(() -> {
                     if (passenger instanceof ServerPlayer thrownPlayer) {
                         thrownPlayer.setDeltaMovement(velocity);
-                        thrownPlayer.hurtMarked = true;
+                        thrownPlayer.syncVelocity = true;
                         thrownPlayer.setOnGround(false);
                         thrownPlayer.fallDistance = 0.0f;
                     } else {
                         passenger.setDeltaMovement(velocity);
-                        passenger.hurtMarked = true;
+                        passenger.syncVelocity = true;
                     }
 
                     float pitch = Math.max(0.5f, Math.min(1.8f, 0.8f + powerFactor * 0.8f));
                     level.playSound(null, player.getX(), player.getY(), player.getZ(),
                             SoundEvents.PLAYER_ATTACK_SWEEP, SoundSource.PLAYERS, 0.8F, pitch);
-                    player.swing(InteractionHand.MAIN_HAND, true);
+                    player.swing(InteractionHand.MAIN_HAND, SwingAnimation.DEFAULT, true);
                 }, 51, TimeUnit.MILLISECONDS);
                 carry.clear();
                 CarryOnDataManager.setCarryData(player, carry);
@@ -150,7 +153,7 @@ public class EntityThrowHandler {
         if (entity == null) {
             if (!entityTypeString.isEmpty() && level instanceof ServerLevel serverLevel) {
                 try {
-                    EntityType<?> entityType = EntityType.byString(entityTypeString).orElse(null);
+                    EntityType<?> entityType = BuiltInRegistries.ENTITY_TYPE.getOptional(Identifier.parse(entityTypeString)).orElse(null);
                     if (entityType != null) {
                         entity = entityType.create(serverLevel, EntitySpawnReason.LOAD);
                         if (entity != null) {
@@ -231,6 +234,6 @@ public class EntityThrowHandler {
         CarryOnDataManager.setCarryData(player, carry);
         if (!player.isCreative() || Constants.COMMON_CONFIG.settings.slownessInCreative)
             player.removeEffect(MobEffects.SLOWNESS);
-        player.swing(InteractionHand.MAIN_HAND, true);
+        player.swing(InteractionHand.MAIN_HAND, SwingAnimation.DEFAULT, true);
     }
 }

@@ -3,7 +3,7 @@ package com.lirxowo.carryonextend.trigger;
 import com.lirxowo.carryonextend.CarryOnExtend;
 import dev.architectury.registry.registries.DeferredRegister;
 import dev.architectury.registry.registries.RegistrySupplier;
-import net.minecraft.advancements.CriterionTrigger;
+import net.minecraft.advancements.triggers.CriterionTrigger;
 import net.minecraft.core.registries.Registries;
 
 public class TriggerRegistry {
