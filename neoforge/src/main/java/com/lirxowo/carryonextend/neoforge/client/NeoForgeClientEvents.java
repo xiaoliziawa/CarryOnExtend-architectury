@@ -19,6 +19,13 @@ public class NeoForgeClientEvents {
     }
 
     @SubscribeEvent
+    public static void onMouseInput(InputEvent.MouseButton.Post event) {
+
+        ClientEvents.onMouseInput(event.getMouseButtonInfo(), event.getAction());
+
+    }
+
+    @SubscribeEvent
     public static void onMouseScroll(InputEvent.MouseScrollingEvent event) {
 
         double scrollDelta = event.getScrollDeltaY();
