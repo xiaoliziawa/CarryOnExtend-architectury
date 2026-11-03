@@ -15,22 +15,41 @@ public class ClientEvents {
         Minecraft mc = Minecraft.getInstance();
         Player player = mc.player;
 
-        if (player == null) return false;
+        if (player == null || mc.isPaused()) return false;
 
         if (mc.options.keyDrop.matches(key, -1) && action == InputConstants.PRESS) {
-            CarryOnData carry = CarryOnDataManager.getCarryData(player);
+            return throwCarried(player);
+        }
 
-            if (carry.isCarrying(CarryOnData.CarryType.ENTITY) || carry.isCarrying(CarryOnData.CarryType.PLAYER) ||
-                    carry.isCarrying(CarryOnData.CarryType.BLOCK)) {
+        return false;
+    }
 
-                boolean isEntity = carry.isCarrying(CarryOnData.CarryType.ENTITY) || carry.isCarrying(CarryOnData.CarryType.PLAYER);
+    public static boolean onMouseInput(int button, int action) {
+        Minecraft mc = Minecraft.getInstance();
+        Player player = mc.player;
 
-                float power = PowerThrowHandler.getPowerFactor();
+        if (player == null || mc.isPaused()) return false;
 
-                NetworkHandler.sendToServer(new ThrowPowerPacket(power, isEntity));
+        if (mc.options.keyDrop.matchesMouse(button) && action == InputConstants.PRESS) {
+            return throwCarried(player);
+        }
 
-                return true;
-            }
+        return false;
+    }
+
+    private static boolean throwCarried(Player player) {
+        CarryOnData carry = CarryOnDataManager.getCarryData(player);
+
+        if (carry.isCarrying(CarryOnData.CarryType.ENTITY) || carry.isCarrying(CarryOnData.CarryType.PLAYER) ||
+                carry.isCarrying(CarryOnData.CarryType.BLOCK)) {
+
+            boolean isEntity = carry.isCarrying(CarryOnData.CarryType.ENTITY) || carry.isCarrying(CarryOnData.CarryType.PLAYER);
+
+            float power = PowerThrowHandler.getPowerFactor();
+
+            NetworkHandler.sendToServer(new ThrowPowerPacket(power, isEntity));
+
+            return true;
         }
 
         return false;

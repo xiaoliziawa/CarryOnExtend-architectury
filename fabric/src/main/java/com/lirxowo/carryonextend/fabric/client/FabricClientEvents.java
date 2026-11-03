@@ -20,7 +20,7 @@ public class FabricClientEvents {
 
     private static void onClientTick(Minecraft client) {
         Player player = client.player;
-        if (player == null) {
+        if (player == null || client.isPaused()) {
             wasDropKeyDown = false;
             return;
         }
