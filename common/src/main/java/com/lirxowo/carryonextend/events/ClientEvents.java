@@ -6,6 +6,8 @@ import com.lirxowo.carryonextend.network.ThrowPowerPacket;
 import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.input.MouseButtonInfo;
 import net.minecraft.world.entity.player.Player;
 import tschipp.carryon.common.carry.CarryOnData;
 import tschipp.carryon.common.carry.CarryOnDataManager;
@@ -16,24 +18,45 @@ public class ClientEvents {
         Minecraft mc = Minecraft.getInstance();
         Player player = mc.player;
 
-        if (player == null) return false;
+        if (player == null || mc.isPaused()) return false;
 
         KeyEvent keyEvent = new KeyEvent(key, scancode, 0);
 
         if (mc.options.keyDrop.matches(keyEvent) && action == InputConstants.PRESS) {
-            CarryOnData carry = CarryOnDataManager.getCarryData(player);
+            return throwCarried(player);
+        }
 
-            if (carry.isCarrying(CarryOnData.CarryType.ENTITY) || carry.isCarrying(CarryOnData.CarryType.PLAYER) ||
-                    carry.isCarrying(CarryOnData.CarryType.BLOCK)) {
+        return false;
+    }
 
-                boolean isEntity = carry.isCarrying(CarryOnData.CarryType.ENTITY) || carry.isCarrying(CarryOnData.CarryType.PLAYER);
+    public static boolean onMouseInput(MouseButtonInfo buttonInfo, int action) {
+        Minecraft mc = Minecraft.getInstance();
+        Player player = mc.player;
 
-                float power = PowerThrowHandler.getPowerFactor();
+        if (player == null || mc.isPaused()) return false;
 
-                NetworkHandler.sendToServer(new ThrowPowerPacket(power, isEntity));
+        MouseButtonEvent mouseEvent = new MouseButtonEvent(0, 0, buttonInfo);
 
-                return true;
-            }
+        if (mc.options.keyDrop.matchesMouse(mouseEvent) && action == InputConstants.PRESS) {
+            return throwCarried(player);
+        }
+
+        return false;
+    }
+
+    private static boolean throwCarried(Player player) {
+        CarryOnData carry = CarryOnDataManager.getCarryData(player);
+
+        if (carry.isCarrying(CarryOnData.CarryType.ENTITY) || carry.isCarrying(CarryOnData.CarryType.PLAYER) ||
+                carry.isCarrying(CarryOnData.CarryType.BLOCK)) {
+
+            boolean isEntity = carry.isCarrying(CarryOnData.CarryType.ENTITY) || carry.isCarrying(CarryOnData.CarryType.PLAYER);
+
+            float power = PowerThrowHandler.getPowerFactor();
+
+            NetworkHandler.sendToServer(new ThrowPowerPacket(power, isEntity));
+
+            return true;
         }
 
         return false;
