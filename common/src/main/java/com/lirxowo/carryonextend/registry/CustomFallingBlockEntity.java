@@ -297,7 +297,7 @@ public class CustomFallingBlockEntity extends FallingBlockEntity {
             BlockEntity tempEntity = entityBlock.newBlockEntity(this.blockPosition(), this.blockState);
             if (tempEntity != null) {
                 tempEntity.loadWithComponents(blockData, this.level().registryAccess());
-                tempEntity.saveToItem(itemStack, this.level().registryAccess());
+                FallingBlockUtil.saveBlockEntityToItem(tempEntity, itemStack, this.level());
             }
         }
 

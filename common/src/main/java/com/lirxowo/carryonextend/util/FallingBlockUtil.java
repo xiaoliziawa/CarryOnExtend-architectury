@@ -12,6 +12,7 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -218,12 +219,20 @@ public class FallingBlockUtil {
             try {
                 tempEntity.loadWithComponents(blockData, tempEntity.getLevel() != null ?
                     tempEntity.getLevel().registryAccess() : null);
-                tempEntity.saveToItem(itemStack, tempEntity.getLevel() != null ?
-                    tempEntity.getLevel().registryAccess() : null);
+                saveBlockEntityToItem(tempEntity, itemStack, tempEntity.getLevel());
             } catch (Exception e) {
             }
         }
 
         return itemStack;
+    }
+
+    public static void saveBlockEntityToItem(BlockEntity blockEntity, ItemStack itemStack, Level level) {
+        if (blockEntity == null || itemStack == null || level == null) {
+            return;
+        }
+
+        CompoundTag tag = blockEntity.saveCustomOnly(level.registryAccess());
+        BlockItem.setBlockEntityData(itemStack, blockEntity.getType(), tag);
     }
 }
