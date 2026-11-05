@@ -49,6 +49,9 @@ dependencies {
     // CarryOn mod dependency (Fabric)
     modImplementation "curse.maven:carry-on-274259:7386195"
 
+    // Lootr compatibility (optional, compile-only)
+    modCompileOnly "curse.maven:lootr-fabric-615106:$rootProject.lootr_fabric_file_id"
+
     common(project(path: ':common', configuration: 'namedElements')) { transitive false }
     shadowBundle project(path: ':common', configuration: 'transformProductionFabric')
 }

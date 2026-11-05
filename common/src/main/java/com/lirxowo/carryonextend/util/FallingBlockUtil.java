@@ -14,6 +14,7 @@ import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -236,13 +237,8 @@ public class FallingBlockUtil {
 
         try (ProblemReporter.ScopedCollector reporter = new ProblemReporter.ScopedCollector(blockEntity.problemPath(), Constants.LOG)) {
             TagValueOutput output = TagValueOutput.createWithContext(reporter, level.registryAccess());
-            blockEntity.saveWithoutMetadata(output);
-            CompoundTag nbt = output.buildResult();
-
-            // Apply the NBT to the item using the component system
-            if (!nbt.isEmpty()) {
-                itemStack.applyComponents(blockEntity.collectComponents());
-            }
+            blockEntity.saveCustomOnly(output);
+            BlockItem.setBlockEntityData(itemStack, blockEntity.getType(), output);
         } catch (Exception e) {
             Constants.LOG.error("Failed to save block entity to item", e);
         }
