@@ -21,4 +21,7 @@ dependencies {
 
     // CarryOn mod dependency (compile-only for common module)
     compileOnly "curse.maven:carry-on-274259:$rootProject.carryon_fabric_file_id"
+
+    // Lootr compatibility (optional, compile-only)
+    compileOnly "curse.maven:lootr-fabric-615106:$rootProject.lootr_fabric_file_id"
 }
