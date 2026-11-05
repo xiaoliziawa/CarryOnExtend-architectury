@@ -39,6 +39,9 @@ dependencies {
     // CarryOn mod dependency (NeoForge)
     modImplementation "curse.maven:carry-on-274259:7386188"
 
+    // Lootr compatibility (optional, compile-only)
+    modCompileOnly "curse.maven:lootr-361276:$rootProject.lootr_neoforge_file_id"
+
     //游戏内账号切换Mod，用于辅助调试
 //    modImplementation "curse.maven:in-game-account-switcher-232676:5474316"
 
